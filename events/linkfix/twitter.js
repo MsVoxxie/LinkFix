@@ -18,6 +18,7 @@ module.exports = {
 
 		// Define Variables
 		let lastMessage;
+		let messageToSend;
 		let firstMessage = true;
 		const fixEmoji = '🔗';
 		const messagesToSend = [];
@@ -50,16 +51,21 @@ module.exports = {
 					// Stop the collector
 					collector.stop();
 
+					// Get the original message but remove any found lins
+					const originalMessage = message.content.replace(twitRegex, '').trim();
+
 					// Remove the reaction
 					await message.reactions.cache.get(fixEmoji).remove();
+					await message.delete();
 
 					// Send the messages
 					for await (const msg of messagesToSend) {
+						messageToSend = msg.replace('{TYPE}', 'ManuallyFixed');
 						if (firstMessage) {
-							lastMessage = await message.reply(`${msg.replace('{TYPE}', 'ManuallyFixed')}`);
+							lastMessage = await message.channel.send(`From: ${message.author}\n${originalMessage}\n${messageToSend}`);
 							firstMessage = false;
 						} else {
-							lastMessage = await lastMessage.reply(`${msg.replace('{TYPE}', 'ManuallyFixed')}`);
+							lastMessage = await lastMessage.reply(messageToSend);
 						}
 					}
 				});
@@ -74,11 +80,12 @@ module.exports = {
 				// The message does not have an embed so send the messages automatically
 				// Send the messages
 				for await (const msg of messagesToSend) {
+					messageToSend = msg.replace('{TYPE}', 'AutoFixed');
 					if (firstMessage) {
-						lastMessage = await message.reply(`${msg.replace('{TYPE}', 'AutoFixed')}`);
+						lastMessage = await message.reply(messageToSend);
 						firstMessage = false;
 					} else {
-						lastMessage = await lastMessage.reply(`${msg.replace('{TYPE}', 'AutoFixed')}`);
+						lastMessage = await lastMessage.reply(messageToSend);
 					}
 				}
 				break;
