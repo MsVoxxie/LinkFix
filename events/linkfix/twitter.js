@@ -56,7 +56,7 @@ module.exports = {
 
 					// Remove the reaction
 					await message.reactions.cache.get(fixEmoji).remove();
-					await message.delete();
+					if (message) await message?.delete();
 
 					// Send the messages
 					for await (const msg of messagesToSend) {
@@ -72,7 +72,7 @@ module.exports = {
 
 				// Remove the reaction after the time is up
 				collector.on('end', async () => {
-					await message.reactions.cache.get(fixEmoji).remove();
+					if (message) await message?.reactions.cache.get(fixEmoji).remove();
 				});
 				break;
 
