@@ -46,7 +46,7 @@ module.exports = {
 
 				// The message has an embed so give the user the ability to manually fix the link
 				const filter = (reaction, user) => reaction.emoji.name === fixEmoji && user.id === message.author.id;
-				const collector = message.createReactionCollector({ filter, time: 60 * 1000 });
+				const collector = message.createReactionCollector({ filter, time: 90 * 1000 });
 				collector.on('collect', async () => {
 					// Stop the collector
 					collector.stop();
