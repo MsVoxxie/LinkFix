@@ -30,7 +30,7 @@ module.exports = {
 			const twitID = match[2];
 
 			// Format the message
-			const formattedMessage = hyperlink(`{TYPE} • ${twitUser} - ${twitID}`, `https://fixupx.com/${twitUser}/status/${twitID}`);
+			const formattedMessage = hyperlink(`{TYPE} Tweet • ${twitUser} - ${twitID}`, `https://fixupx.com/${twitUser}/status/${twitID}`);
 
 			// Add the message to the array
 			messagesToSend.push(formattedMessage);
@@ -60,7 +60,7 @@ module.exports = {
 
 					// Send the messages
 					for await (const msg of messagesToSend) {
-						messageToSend = msg.replace('{TYPE}', 'ManuallyFixed');
+						messageToSend = msg.replace('{TYPE}', 'M |');
 						if (firstMessage) {
 							lastMessage = await message.channel.send(`From: ${message.author}\n${originalMessage}\n${messageToSend}`);
 							firstMessage = false;
@@ -80,7 +80,7 @@ module.exports = {
 				// The message does not have an embed so send the messages automatically
 				// Send the messages
 				for await (const msg of messagesToSend) {
-					messageToSend = msg.replace('{TYPE}', 'AutoFixed');
+					messageToSend = msg.replace('{TYPE}', 'A |');
 					if (firstMessage) {
 						lastMessage = await message.reply(messageToSend);
 						firstMessage = false;
