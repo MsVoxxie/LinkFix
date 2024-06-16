@@ -20,7 +20,14 @@ module.exports = {
 		let lastMessage;
 		let messageToSend;
 		let firstMessage = true;
-		const fixEmoji = '🔗';
+
+		// Define Emojis
+		const memberEmoji = '<:members_alt:1251856831819808789>';
+		const botEmoji = '<:bot_alt:1251856830917771357>';
+		const fixEmoji = '<:twx:1251856156381548614>';
+		const [emojiName, emojiId] = fixEmoji.match(/<:([^:]+):(\d+)>/).slice(1, 3);
+
+		// Define Array
 		const messagesToSend = [];
 
 		// Loop over every match
@@ -30,7 +37,7 @@ module.exports = {
 			const twitID = match[2];
 
 			// Format the message
-			const formattedMessage = hyperlink(`{TYPE} Tweet • ${twitUser} - ${twitID}`, `https://fixupx.com/${twitUser}/status/${twitID}`);
+			const formattedMessage = hyperlink(`Tweet • ${twitUser} - ${twitID}`, `https://fixupx.com/${twitUser}/status/${twitID}`);
 
 			// Add the message to the array
 			messagesToSend.push(formattedMessage);
@@ -45,7 +52,7 @@ module.exports = {
 				await message.react(fixEmoji);
 
 				// The message has an embed so give the user the ability to manually fix the link
-				const filter = (reaction, user) => reaction.emoji.name === fixEmoji && user.id === message.author.id;
+				const filter = (reaction, user) => reaction.emoji.id === emojiId && user.id === message.author.id;
 				const collector = message.createReactionCollector({ filter, time: 90 * 1000 });
 				collector.on('collect', async () => {
 					// Stop the collector
@@ -55,12 +62,12 @@ module.exports = {
 					const originalMessage = message.content.replace(twitRegex, '').trim();
 
 					// Remove the reaction
-					await message.reactions.cache.get(fixEmoji).remove();
+					await message.reactions.cache.get(emojiId).remove();
 					if (message) await message?.delete();
 
 					// Send the messages
 					for await (const msg of messagesToSend) {
-						messageToSend = msg.replace('{TYPE}', 'M |');
+						messageToSend = `${memberEmoji} | ${msg}`;
 						if (firstMessage) {
 							lastMessage = await message.channel.send(`From: ${message.author}\n${originalMessage}\n${messageToSend}`);
 							firstMessage = false;
@@ -72,7 +79,7 @@ module.exports = {
 
 				// Remove the reaction after the time is up
 				collector.on('end', async () => {
-					if (message) await message?.reactions.cache.get(fixEmoji).remove();
+					if (message) await message?.reactions.cache.get(emojiId).remove();
 				});
 				break;
 
@@ -80,7 +87,7 @@ module.exports = {
 				// The message does not have an embed so send the messages automatically
 				// Send the messages
 				for await (const msg of messagesToSend) {
-					messageToSend = msg.replace('{TYPE}', 'A |');
+					messageToSend = `${botEmoji} | ${msg}`;
 					if (firstMessage) {
 						lastMessage = await message.reply(messageToSend);
 						firstMessage = false;
