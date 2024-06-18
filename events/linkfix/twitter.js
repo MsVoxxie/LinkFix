@@ -58,7 +58,9 @@ module.exports = {
 					// Stop the collector
 					collector.stop();
 
-					// Get the original message but remove any found lins
+					// Get the original message but remove any found lines
+					// Remove any trailing newlines
+
 					const originalMessage = message.content.replace(twitRegex, '').trim();
 
 					// Remove the reaction
@@ -68,8 +70,19 @@ module.exports = {
 					// Send the messages
 					for await (const msg of messagesToSend) {
 						messageToSend = `${memberEmoji} | ${msg}`;
+
+						// Format the message to send
+						const manualFormat = `From ${message.author}\n${originalMessage.length ? `${originalMessage}\n` : ''}${messageToSend}`;
+
 						if (firstMessage) {
-							lastMessage = await message.channel.send(`From: ${message.author}\n${originalMessage}\n${messageToSend}`);
+							// If the message has a reference, reply to the reference
+							if (message.reference) {
+								const replyMessage = await message.channel.messages.fetch(message.reference.messageId);
+								lastMessage = await replyMessage.reply(manualFormat);
+							} else {
+								// If the message does not have a reference, send a new message
+								lastMessage = await message.channel.send(manualFormat);
+							}
 							firstMessage = false;
 						} else {
 							lastMessage = await lastMessage.reply(messageToSend);
