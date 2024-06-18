@@ -27,6 +27,9 @@ module.exports = {
 		const fixEmoji = '<:twx:1251856156381548614>';
 		const [emojiName, emojiId] = fixEmoji.match(/<:([^:]+):(\d+)>/).slice(1, 3);
 
+		// Get the original message but remove any found lines
+		let originalMessage = message.content.replace(twitRegex, '').trim();
+
 		// Define Array
 		const messagesToSend = [];
 
@@ -35,9 +38,10 @@ module.exports = {
 			// Define Variables
 			const twitUser = match[1];
 			const twitID = match[2];
+			const twitLink = `https://fixupx.com/${twitUser}/status/${twitID}`;
 
 			// Format the message
-			const formattedMessage = hyperlink(`Tweet • ${twitUser} - ${twitID}`, `https://fixupx.com/${twitUser}/status/${twitID}`);
+			const formattedMessage = hyperlink(`Tweet • ${twitUser} - ${twitID}`, twitLink);
 
 			// Add the message to the array
 			messagesToSend.push(formattedMessage);
@@ -58,17 +62,13 @@ module.exports = {
 					// Stop the collector
 					collector.stop();
 
-					// Get the original message but remove any found lines
-					// Remove any trailing newlines
-
-					const originalMessage = message.content.replace(twitRegex, '').trim();
-
 					// Remove the reaction
 					await message.reactions.cache.get(emojiId).remove();
 					if (message) await message?.delete();
 
 					// Send the messages
 					for await (const msg of messagesToSend) {
+						// Format the message to send
 						messageToSend = `${memberEmoji} | ${msg}`;
 
 						// Format the message to send
@@ -100,12 +100,13 @@ module.exports = {
 				// The message does not have an embed so send the messages automatically
 				// Send the messages
 				for await (const msg of messagesToSend) {
+					// Format the message to send
 					messageToSend = `${botEmoji} | ${msg}`;
 					if (firstMessage) {
-						lastMessage = await message.reply(messageToSend);
+						lastMessage = await message.reply(`From ${message.author}\n${originalMessage.length ? `${originalMessage}\n` : ''}${messageToSend}`);
 						firstMessage = false;
 					} else {
-						lastMessage = await lastMessage.reply(messageToSend);
+						lastMessage = await lastMessage.reply(`${messageToSend}`);
 					}
 				}
 				break;
