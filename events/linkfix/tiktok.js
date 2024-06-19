@@ -1,5 +1,6 @@
 const { Events, hyperlink } = require('discord.js');
 const linkFixer = require('../../functions/helpers/linkFixer');
+const { msgSpoiled } = require('../../functions/helpers/messageFuncs');
 
 module.exports = {
 	name: Events.MessageCreate,
@@ -7,6 +8,9 @@ module.exports = {
 	async execute(client, message) {
 		// Check if the message is from a bot
 		if (message.author.bot) return;
+
+		// If the message contains <link> or ||link|| or ||link#||, return
+		if (msgSpoiled(message.content)) return;
 
 		// Define Regex
 		const linkRegex = /https:\/\/www\.tiktok\.com\/@([^\/]+)\/video\/(\d+)/gm;

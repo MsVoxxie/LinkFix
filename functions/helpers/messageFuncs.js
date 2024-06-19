@@ -9,6 +9,12 @@ function embedHasContent(embed) {
 	return false;
 }
 
+const msgSpoiled = (content) => {
+	const linkPattern = /<[^>]*>|(\|\|.*?\|\|)/;
+	return linkPattern.test(content);
+};
+
 module.exports = {
 	embedHasContent,
+	msgSpoiled,
 };
