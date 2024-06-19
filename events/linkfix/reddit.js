@@ -9,7 +9,7 @@ module.exports = {
 		if (message.author.bot) return;
 
 		// Define Regex
-		const linkRegex = /https?:\/\/(?:www\.)?(?:twitter\.com|x\.com|nitter\.net)\/([\w_]+)\/status\/(\d+)(\/(?:photo|video)\/\d)?\/?(?:\?\S+)?/gm;
+		const linkRegex = /https:\/\/www\.reddit\.com\/r\/([^\/]+)\/comments\/([^\/]+)\/[^\/]+\/?/gm;
 		const queryString = /(\bhttps?:\/\/[^\s?]+)\?[^\s]*/gm;
 		const linkMatches = [...message.content.matchAll(linkRegex)];
 		if (!linkMatches.length) return;
@@ -26,12 +26,12 @@ module.exports = {
 		// Loop over every match
 		for (const match of linkMatches) {
 			// Define Variables
-			const userId = match[1];
+			const linkSub = match[1];
 			const linkId = match[2];
-			const finalLink = `https://fixupx.com/${userId}/status/${linkId}`;
+			const finalLink = `https://rxddit.com/r/${linkSub}/comments/${linkId}`;
 
 			// Format the message
-			const formattedMessage = hyperlink(`Tweet • ${userId} - ${linkId}`, finalLink);
+			const formattedMessage = hyperlink(`Reddit • ${linkSub} - ${linkId}`, finalLink);
 
 			// Add the message to the array
 			messagesToSend.push(formattedMessage);
@@ -39,7 +39,7 @@ module.exports = {
 
 		// Run the link fixer
 		try {
-			await linkFixer(message, originalMessage, messagesToSend, '<:twx:1251856156381548614>');
+			await linkFixer(message, originalMessage, messagesToSend, '<:reddit:1252938937312346182>');
 		} catch (error) {
 			console.error('An error occurred in the link fixer:', error);
 		}
