@@ -103,7 +103,7 @@ module.exports = {
 					// Format the message to send
 					messageToSend = `${botEmoji} | ${msg}`;
 					if (firstMessage) {
-						lastMessage = await message.reply(`From ${message.author}\n${originalMessage.length ? `${originalMessage}\n` : ''}${messageToSend}`);
+						lastMessage = await message.reply(`${messageToSend}`);
 						firstMessage = false;
 					} else {
 						lastMessage = await lastMessage.reply(`${messageToSend}`);
