@@ -28,7 +28,7 @@ module.exports = {
 			// Define Variables
 			const userId = match[1];
 			const linkId = match[2];
-			const finalLink = `https://fixupx.com/${userId}/status/${linkId}`;
+			const finalLink = `https://fixupx.com/${userId}/status/${linkId}/en`;
 
 			// Format the message
 			const formattedMessage = hyperlink(`Tweet • ${userId} - ${linkId}`, finalLink);
