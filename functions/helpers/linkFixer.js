@@ -6,7 +6,6 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 		let lastMessage;
 		let messageToSend;
 		let firstMessage = true;
-		let finalMessage = false;
 		const sentMessages = [];
 
 		// Define Emojis
@@ -61,6 +60,10 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 							lastMessage = await lastMessage.reply(messageToSend);
 							sentMessages.push(lastMessage);
 						}
+						// If the message is the last message, allow the user to remove the messages
+						if (index === messagesToSend.length - 1) {
+							await allowRemove(message.author, lastMessage, sentMessages);
+						}
 					}
 				});
 
@@ -74,6 +77,9 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 				// The message does not have an embed so send the messages automatically
 				// Send the messages
 				for await (const msg of messagesToSend) {
+					// Get the index of the message
+					const index = messagesToSend.indexOf(msg);
+
 					// Format the message to send
 					messageToSend = `${botEmoji} | ${msg}`;
 					if (firstMessage) {
@@ -84,41 +90,45 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 						lastMessage = await lastMessage.reply(`${messageToSend}`);
 						sentMessages.push(lastMessage);
 					}
+
+					// If the message is the last message, allow the user to remove the messages
+					if (index === messagesToSend.length - 1) {
+						await allowRemove(message.author, lastMessage, sentMessages);
+					}
 				}
 				break;
 		}
-
-		// Add the reaction
-		await lastMessage.react('🚮');
-
-		// Add a collector to the last message in case the user wants to delete the messages
-		const filter = (reaction, user) => reaction.emoji.name === '🚮' && user.id === message.author.id;
-		const collector = lastMessage.createReactionCollector({ filter, time: 30 * 1000 });
-
-		// Listen for the reaction
-		collector.on('collect', async () => {
-			// Stop the collector
-			collector.stop();
-
-			// Delete the messages
-			for await (const msg of sentMessages) {
-				// Check if the message exists
-				if (msg) {
-					await msg.delete();
-				}
-			}
-		});
-
-		// Remove the reaction after the time is up
-		collector.on('end', async () => {
-			// Check if the message exists
-			if (lastMessage) {
-				await lastMessage.reactions.cache.get('🚮').remove();
-			}
-		});
 	} catch (error) {
 		throw new Error(error);
 	}
+}
+
+async function allowRemove(author, message, sentMessages) {
+	// Add the reaction
+	await message.react('🚮');
+	// Add a collector to the last message in case the user wants to delete the messages
+	const filter = (reaction, user) => reaction.emoji.name === '🚮' && user.id === author.id;
+	const collector = message.createReactionCollector({ filter, time: 30 * 1000 });
+
+	// Listen for the reaction
+	collector.on('collect', async () => {
+		console.log('Collector Collected');
+		// Stop the collector
+		collector.stop();
+
+		// Delete the messages
+		for await (const msg of sentMessages) {
+			// Check if the message exists
+			await msg?.delete();
+		}
+	});
+
+	// Remove the reaction after the time is up
+	collector.on('end', async (col, reason) => {
+		if (reason === 'time') {
+			await message?.reactions?.cache?.get('🚮')?.remove();
+		}
+	});
 }
 
 module.exports = linkFix;
