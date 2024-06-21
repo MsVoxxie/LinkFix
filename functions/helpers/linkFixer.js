@@ -6,6 +6,8 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 		let lastMessage;
 		let messageToSend;
 		let firstMessage = true;
+		let finalMessage = false;
+		const sentMessages = [];
 
 		// Define Emojis
 		const memberEmoji = '<:members_alt:1251856831819808789>';
@@ -34,6 +36,9 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 
 					// Send the messages
 					for await (const msg of messagesToSend) {
+						// Get the index of the message
+						const index = messagesToSend.indexOf(msg);
+
 						// Format the message to send
 						messageToSend = `${memberEmoji} | ${msg}`;
 
@@ -45,13 +50,16 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 							if (message.reference) {
 								const replyMessage = await message.channel.messages.fetch(message.reference.messageId);
 								lastMessage = await replyMessage.reply(manualFormat);
+								sentMessages.push(lastMessage);
 							} else {
 								// If the message does not have a reference, send a new message
 								lastMessage = await message.channel.send(manualFormat);
+								sentMessages.push(lastMessage);
 							}
 							firstMessage = false;
 						} else {
 							lastMessage = await lastMessage.reply(messageToSend);
+							sentMessages.push(lastMessage);
 						}
 					}
 				});
@@ -70,13 +78,44 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 					messageToSend = `${botEmoji} | ${msg}`;
 					if (firstMessage) {
 						lastMessage = await message.reply(`${messageToSend}`);
+						sentMessages.push(lastMessage);
 						firstMessage = false;
 					} else {
 						lastMessage = await lastMessage.reply(`${messageToSend}`);
+						sentMessages.push(lastMessage);
 					}
 				}
 				break;
 		}
+
+		// Add the reaction
+		await lastMessage.react('🚮');
+
+		// Add a collector to the last message in case the user wants to delete the messages
+		const filter = (reaction, user) => reaction.emoji.name === '🚮' && user.id === message.author.id;
+		const collector = lastMessage.createReactionCollector({ filter, time: 30 * 1000 });
+
+		// Listen for the reaction
+		collector.on('collect', async () => {
+			// Stop the collector
+			collector.stop();
+
+			// Delete the messages
+			for await (const msg of sentMessages) {
+				// Check if the message exists
+				if (msg) {
+					await msg.delete();
+				}
+			}
+		});
+
+		// Remove the reaction after the time is up
+		collector.on('end', async () => {
+			// Check if the message exists
+			if (lastMessage) {
+				await lastMessage.reactions.cache.get('🚮').remove();
+			}
+		});
 	} catch (error) {
 		throw new Error(error);
 	}
