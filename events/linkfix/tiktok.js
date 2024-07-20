@@ -32,7 +32,7 @@ module.exports = {
 			// Define Variables
 			const userId = match[1];
 			const linkId = match[2];
-			const finalLink = `https://vxtiktok.com/@${userId}/video/${linkId}`;
+			const finalLink = `https://tnktok.com/@${userId}/video/${linkId}`;
 
 			// Format the message
 			const formattedMessage = hyperlink(`TikTok • ${userId} - ${linkId}`, finalLink);
