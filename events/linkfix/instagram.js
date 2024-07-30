@@ -42,7 +42,7 @@ module.exports = {
 
 		// Run the link fixer
 		try {
-			await linkFixer(message, originalMessage, messagesToSend, '<:insta:1252935517784506398>');
+			await linkFixer(message, originalMessage, messagesToSend, '<:insta:1267698397167747173>');
 		} catch (error) {
 			console.error('An error occurred in the link fixer:', error);
 		}

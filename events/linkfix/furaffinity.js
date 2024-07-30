@@ -42,7 +42,7 @@ module.exports = {
 
 		// Run the link fixer
 		try {
-			await linkFixer(message, originalMessage, messagesToSend, '<:furaffinity:1252943429835685939>');
+			await linkFixer(message, originalMessage, messagesToSend, '<:furaffinity:1267698389168947280>');
 		} catch (error) {
 			console.error('An error occurred in the link fixer:', error);
 		}

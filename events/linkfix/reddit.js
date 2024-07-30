@@ -43,7 +43,7 @@ module.exports = {
 
 		// Run the link fixer
 		try {
-			await linkFixer(message, originalMessage, messagesToSend, '<:reddit:1252938937312346182>');
+			await linkFixer(message, originalMessage, messagesToSend, '<:reddit:1267698435461484640>');
 		} catch (error) {
 			console.error('An error occurred in the link fixer:', error);
 		}

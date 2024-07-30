@@ -9,8 +9,8 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 		const sentMessages = [];
 
 		// Define Emojis
-		const memberEmoji = '<:members_alt:1251856831819808789>';
-		const botEmoji = '<:bot_alt:1251856830917771357>';
+		const memberEmoji = '<:members_alt:1267698407573819432>';
+		const botEmoji = '<:bot_alt:1267698378117218344>';
 		const fixEmoji = emoji;
 		const [emojiName, emojiId] = fixEmoji.match(/<:([^:]+):(\d+)>/).slice(1, 3);
 

@@ -43,7 +43,7 @@ module.exports = {
 
 		// Run the link fixer
 		try {
-			await linkFixer(message, originalMessage, messagesToSend, '<:tiktok:1252936989746139257>');
+			await linkFixer(message, originalMessage, messagesToSend, '<:tiktok:1267698443560943647>');
 		} catch (error) {
 			console.error('An error occurred in the link fixer:', error);
 		}

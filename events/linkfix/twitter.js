@@ -43,7 +43,7 @@ module.exports = {
 
 		// Run the link fixer
 		try {
-			await linkFixer(message, originalMessage, messagesToSend, '<:twx:1251856156381548614>');
+			await linkFixer(message, originalMessage, messagesToSend, '<:twx:1267698451051708467>');
 		} catch (error) {
 			console.error('An error occurred in the link fixer:', error);
 		}

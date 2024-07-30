@@ -42,7 +42,7 @@ module.exports = {
 
 		// Run the link fixer
 		try {
-			await linkFixer(message, originalMessage, messagesToSend, '<:pixiv:1252934742219952209>');
+			await linkFixer(message, originalMessage, messagesToSend, '<:pixiv:1267698425424511026>');
 		} catch (error) {
 			console.error('An error occurred in the link fixer:', error);
 		}
