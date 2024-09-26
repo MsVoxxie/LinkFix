@@ -14,7 +14,7 @@ module.exports = {
 
 		// Define Regex
 		// const linkRegex = /https:\/\/www\.tiktok\.com\/@([^\/]+)\/video\/(\d+)/gm;
-		const linkRegex = /https:\/\/www\.tiktok\.com\/t\/(\w+)|\//gm;
+		const linkRegex = /https:\/\/www\.tiktok\.com\/t\/(\w+)\//gm;
 		const queryString = /(\bhttps?:\/\/[^\s?]+)\?[^\s]*/gm;
 		const linkMatches = [...message.content.matchAll(linkRegex)];
 		if (!linkMatches.length) return;
