@@ -13,7 +13,8 @@ module.exports = {
 		if (msgSpoiled(message.content)) return;
 
 		// Define Regex
-		const linkRegex = /https:\/\/www\.tiktok\.com\/@([^\/]+)\/video\/(\d+)/gm;
+		// const linkRegex = /https:\/\/www\.tiktok\.com\/@([^\/]+)\/video\/(\d+)/gm;
+		const linkRegex = /https:\/\/www\.tiktok\.com\/t\/(\w+)|\//gm;
 		const queryString = /(\bhttps?:\/\/[^\s?]+)\?[^\s]*/gm;
 		const linkMatches = [...message.content.matchAll(linkRegex)];
 		if (!linkMatches.length) return;
@@ -30,12 +31,14 @@ module.exports = {
 		// Loop over every match
 		for (const match of linkMatches) {
 			// Define Variables
-			const userId = match[1];
-			const linkId = match[2];
-			const finalLink = `https://tnktok.com/@${userId}/video/${linkId}`;
+			// const userId = match[1];
+			const linkId = match[1];
+			// const finalLink = `https://tnktok.com/@${userId}/video/${linkId}`;
+			const finalLink = `https://tnktok.com/t/${linkId}`;
 
 			// Format the message
-			const formattedMessage = hyperlink(`TikTok • ${userId} - ${linkId}`, finalLink);
+			// const formattedMessage = hyperlink(`TikTok • ${userId} - ${linkId}`, finalLink);
+			const formattedMessage = hyperlink(`TikTok • ${linkId}`, finalLink);
 
 			// Add the message to the array
 			messagesToSend.push(formattedMessage);
