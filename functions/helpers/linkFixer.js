@@ -16,8 +16,6 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 
 		// Check if the message has an embed
 		const embedContent = message.embeds.some(embedHasContent);
-		console.log(embedContent);
-		
 
 		switch (embedContent) {
 			case true:
