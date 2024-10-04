@@ -4,6 +4,9 @@ function embedHasContent(embed) {
 	const thumbnail = embed?.thumbnail;
 	const description = embed?.description;
 
+	// If the image height and width are 0, return false
+	if (image && image.height === 0 && image.width === 0) return false;
+
 	// If any of the above is true, return true
 	if (image || thumbnail || description) return true;
 	return false;
