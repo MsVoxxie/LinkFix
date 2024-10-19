@@ -112,7 +112,6 @@ async function allowRemove(author, message, sentMessages) {
 
 	// Listen for the reaction
 	collector.on('collect', async () => {
-		console.log('Collector Collected');
 		// Stop the collector
 		collector.stop();
 
