@@ -31,7 +31,7 @@ module.exports = {
 		for (const match of linkMatches) {
 			// Define Variables
 			const linkId = match[1];
-			const finalLink = `https://ddinstagram.com/reel/${linkId}`;
+			const finalLink = `https://instagramez.com/reel/${linkId}`;
 
 			// Format the message
 			const formattedMessage = hyperlink(`Instagram • ${linkId}`, finalLink);
