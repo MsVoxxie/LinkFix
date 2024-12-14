@@ -13,7 +13,7 @@ module.exports = {
 		if (msgSpoiled(message.content)) return;
 
 		// Define Regex patterns for social media links
-		const regexes = [
+		const serviceData = [
 			{ platform: 'Bsky', emoji: '<:bsky:1297323816787120209>', regex: /https:\/\/bsky\.app\/profile\/([^\/]+)\/post\/([a-zA-Z0-9]{1,20})/gm },
 			{ platform: 'FurAffinity', emoji: '<:furaffinity:1267698389168947280>', regex: /https:\/\/www\.furaffinity\.net\/view\/(\d+)\//gm },
 			{ platform: 'Instagram', emoji: '<:insta:1267698397167747173>', regex: /https:\/\/www\.instagram\.com\/reel\/([A-Za-z0-9_-]+)\//gm },
@@ -30,7 +30,7 @@ module.exports = {
 
 		// Check if any of the patterns match the message content
 		let linkMatches = [];
-		for (const { platform, emoji, regex } of regexes) {
+		for (const { platform, emoji, regex } of serviceData) {
 			linkMatches = linkMatches.concat(
 				[...message.content.matchAll(regex)].map((match) => ({
 					platform,
@@ -51,7 +51,7 @@ module.exports = {
 		let originalMessage = message.content.replace(queryString, '');
 
 		// Remove URLs using the regexes defined for each platform
-		regexes.forEach(({ regex }) => {
+		serviceData.forEach(({ regex }) => {
 			originalMessage = originalMessage.replace(regex, '');
 		});
 
