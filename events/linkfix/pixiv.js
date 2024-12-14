@@ -4,7 +4,7 @@ const { msgSpoiled } = require('../../functions/helpers/messageFuncs');
 
 module.exports = {
 	name: Events.MessageCreate,
-	runType: 'infinity',
+	runType: 'disabled',
 	async execute(client, message) {
 		// Check if the message is from a bot
 		if (message.author.bot) return;
