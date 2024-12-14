@@ -13,7 +13,7 @@ module.exports = {
 		if (msgSpoiled(message.content)) return;
 
 		// Define Regex
-		const linkRegex = /https:\/\/www\.reddit\.com\/r\/([^\/]+)\/(?:comments\/([^\/]+)|s\/([^\/]+))\/?/gm;
+		const linkRegex = /https:\/\/www\.reddit\.com\/r\/([^\/]+)\/(comments|s)\/([^\/]+)\/?/gm;
 		const queryString = /(\bhttps?:\/\/[^\s?]+)\?[^\s]*/gm;
 		const linkMatches = [...message.content.matchAll(linkRegex)];
 		if (!linkMatches.length) return;
@@ -31,8 +31,11 @@ module.exports = {
 		for (const match of linkMatches) {
 			// Define Variables
 			const linkSub = match[1];
-			const linkId = match[2];
-			const finalLink = `https://rxddit.com/r/${linkSub}/comments/${linkId}`;
+			const linkType = match[2];
+			const linkId = match[3];
+			const finalLink = `https://rxddit.com/r/${linkSub}/${linkType}/${linkId}`;
+
+
 
 			// Format the message
 			const formattedMessage = hyperlink(`Reddit • ${linkSub} - ${linkId}`, finalLink);
