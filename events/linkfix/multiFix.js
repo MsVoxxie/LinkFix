@@ -1,6 +1,7 @@
 const { Events, hyperlink } = require('discord.js');
 const linkFixer = require('../../functions/helpers/linkFixer');
 const { msgSpoiled } = require('../../functions/helpers/messageFuncs');
+const { serviceData } = require('../../noNameLinks');
 
 module.exports = {
 	name: Events.MessageCreate,
@@ -11,22 +12,6 @@ module.exports = {
 
 		// If the message contains <link> or ||link|| or ||link#||, return
 		if (msgSpoiled(message.content)) return;
-
-		// Define Regex patterns for social media links
-		const serviceData = [
-			{ platform: 'Bsky', emoji: '<:bsky:1297323816787120209>', regex: /https:\/\/bsky\.app\/profile\/([^\/]+)\/post\/([a-zA-Z0-9]{1,20})/gm },
-			{ platform: 'FurAffinity', emoji: '<:furaffinity:1267698389168947280>', regex: /https:\/\/www\.furaffinity\.net\/view\/(\d+)\//gm },
-			{ platform: 'Instagram', emoji: '<:insta:1267698397167747173>', regex: /https:\/\/www\.instagram\.com\/reel\/([A-Za-z0-9_-]+)\//gm },
-			{ platform: 'Pixiv', emoji: '<:pixiv:1267698425424511026>', regex: /https:\/\/www\.pixiv\.net\/en\/artworks\/(\d+)/gm },
-			{ platform: 'Reddit', emoji: '<:reddit:1267698435461484640>', regex: /https:\/\/www\.reddit\.com\/r\/([^\/]+)\/(comments|s)\/([^\/]+)\/?/gm },
-			{ platform: 'TikTok', emoji: '<:tiktok:1267698443560943647>', regex: /https:\/\/www\.tiktok\.com\/t\/(\w+)\//gm },
-			{ platform: 'Tumblr', emoji: '<:tmblr:1317267509249839114>', regex: /https:\/\/www\.tumblr\.com\/([\w-]+)\/(\d+)/gm },
-			{
-				platform: 'Twitter',
-				emoji: '<:twx:1267698451051708467>',
-				regex: /https?:\/\/(?:www\.)?(?:twitter\.com|x\.com|nitter\.net)\/([\w_]+)\/status\/(\d+)(\/(?:photo|video)\/\d)?\/?(?:\?\S+)?/gm,
-			},
-		];
 
 		// Check if any of the patterns match the message content
 		let linkMatches = [];
