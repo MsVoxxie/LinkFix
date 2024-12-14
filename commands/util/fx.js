@@ -4,7 +4,7 @@ const messageFormatter = require('../../functions/helpers/messageFormatter');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('fx')
-		.setDescription('Fix a given url, if supported.')
+		.setDescription('Fix a given url so that it may embed on Discord, If supported.')
 		.setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel])
 		.setIntegrationTypes([ApplicationIntegrationType.UserInstall])
 		.addStringOption((option) => option.setName('url').setDescription('The url to fix.').setRequired(true)),
