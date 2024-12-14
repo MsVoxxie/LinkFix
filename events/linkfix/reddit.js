@@ -13,7 +13,7 @@ module.exports = {
 		if (msgSpoiled(message.content)) return;
 
 		// Define Regex
-		const linkRegex = /https:\/\/www\.reddit\.com\/r\/([^\/]+)\/comments\/([^\/]+)\/[^\/]+\/?/gm;
+		const linkRegex = /https:\/\/www\.reddit\.com\/r\/([^\/]+)\/(?:comments\/([^\/]+)|s\/([^\/]+))\/?/gm;
 		const queryString = /(\bhttps?:\/\/[^\s?]+)\?[^\s]*/gm;
 		const linkMatches = [...message.content.matchAll(linkRegex)];
 		if (!linkMatches.length) return;
