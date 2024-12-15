@@ -24,7 +24,9 @@ module.exports = {
 				}))
 			);
 		}
-		if (linkMatches.length === 0) return; // If no matches, exit
+
+		// If no matches, exit
+		if (linkMatches.length === 0) return;
 
 		// "Wait" a few seconds to make sure the message embeds are cached
 		await new Promise((resolve) => setTimeout(resolve, 1000));
