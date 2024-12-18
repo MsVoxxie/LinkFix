@@ -29,7 +29,7 @@ module.exports = {
 		if (linkMatches.length === 0) return;
 
 		// "Wait" a few seconds to make sure the message embeds are cached
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+		await new Promise((resolve) => setTimeout(resolve, 1500));
 
 		// Define the query string regex
 		const queryString = /(\bhttps?:\/\/[^\s?]+)\?[^\s]*/gm;
