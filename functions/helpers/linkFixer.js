@@ -1,5 +1,6 @@
 async function linkFix(message, originalMessage, messagesToSend, emoji) {
-	const { embedHasContent } = require('../../functions/helpers/messageFuncs');
+	const { embedHasContent, botHasPermissions } = require('../../functions/helpers/messageFuncs');
+	const { PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 
 	try {
 		// Define Variables
@@ -11,11 +12,50 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 		// Define Emojis
 		const memberEmoji = '<:members_alt:1267698407573819432>';
 		const botEmoji = '<:bot_alt:1267698378117218344>';
+		const errEmoji = '<:error:1318812498769481778>';
 		const fixEmoji = emoji;
 		const [emojiName, emojiId] = fixEmoji.match(/<:([^:]+):(\d+)>/).slice(1, 3);
 
 		// Check if the message has an embed
 		const embedContent = message.embeds.some(embedHasContent);
+
+		// Check if the bot has permissions
+		const permCheck = botHasPermissions(message, [
+			PermissionFlagsBits.AddReactions,
+			PermissionFlagsBits.ManageMessages,
+			PermissionFlagsBits.SendMessages,
+			PermissionFlagsBits.ViewChannel,
+		]);
+		if (permCheck.failedPermissions.length) {
+			// Try to add an error reaction
+			try {
+				await message.react(errEmoji);
+			} catch (error) {
+				return;
+			}
+
+			// Build an embed to send the error message
+			const embed = new EmbedBuilder()
+				.setColor('#FF0000')
+				.setTitle('Missing Permissions')
+				.setThumbnail(message.guild.iconURL())
+				.setDescription(
+					`I am unable to fix ${message.author}'s message in ${message.guild.name}, ${message.channel.name} due to missing permissions.\n\nPlease inform the server owner or an admin to grant me the following permissions:`
+				)
+				.addFields({
+					name: 'Missing Permissions',
+					value: `\`${permCheck.failedPermissions.join(', ')}\``,
+				});
+
+			// Send the embed
+			if (!permCheck.failedPermissions.includes('SendMessages')) {
+				await message.reply({ embeds: [embed] });
+				return;
+			} else {
+				await message.author.send({ embeds: [embed] });
+				return;
+			}
+		}
 
 		switch (embedContent) {
 			case true:
@@ -29,9 +69,13 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 					// Stop the collector
 					collector.stop();
 
-					// Remove the reaction
-					await message.reactions.cache.get(emojiId).remove();
-					if (message) await message?.delete();
+					// Remove the reaction and the message
+					try {
+						await message.reactions.cache.get(emojiId).remove();
+						if (message) await message?.delete();
+					} catch (error) {
+						null;
+					}
 
 					// Send the messages
 					for await (const msg of messagesToSend) {
@@ -125,7 +169,11 @@ async function allowRemove(author, message, sentMessages) {
 	// Remove the reaction after the time is up
 	collector.on('end', async (col, reason) => {
 		if (reason === 'time') {
-			await message?.reactions?.cache?.get('🚮')?.remove();
+			try {
+				await message?.reactions?.cache?.get('🚮')?.remove();
+			} catch (error) {
+				null;
+			}
 		}
 	});
 }
