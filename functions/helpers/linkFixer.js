@@ -40,7 +40,7 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 				.setTitle('Missing Permissions')
 				.setThumbnail(message.guild.iconURL())
 				.setDescription(
-					`I am unable to fix ${message.author}'s message in ${message.guild.name}, ${message.channel.name} due to missing permissions.\n\nPlease inform the server owner or an admin to grant me the following permissions:`
+					`I am unable to fix ${message.member.displayName}'s message in ${message.guild.name}, ${message.channel.name} due to missing permissions.\n\nPlease inform the server owner or an admin to grant me the following permissions:`
 				)
 				.addFields({
 					name: 'Missing Permissions',
