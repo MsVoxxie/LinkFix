@@ -1,6 +1,5 @@
-const { msgSpoiled } = require('./messageFuncs');
-const { hyperlink } = require('discord.js');
 const { serviceData } = require('../../noNameLinks');
+const fixedLinks = require('../../models/linksFixed');
 
 /**
  * Formats a given Discord message object by extracting, processing, and reformatting social media links.
@@ -66,6 +65,9 @@ async function messageFormatter(url) {
 					console.error(`Unsupported platform: ${platform}`);
 			}
 		}
+
+		// Update the database
+		await fixedLinks.findOneAndUpdate({}, { $inc: { linksFixed: 1 } }, { upsert: true });
 
 		return finalLink;
 	} catch (error) {

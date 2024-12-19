@@ -1,6 +1,7 @@
 async function linkFix(message, originalMessage, messagesToSend, emoji) {
 	const { embedHasContent, botHasPermissions } = require('../../functions/helpers/messageFuncs');
 	const { PermissionFlagsBits, EmbedBuilder } = require('discord.js');
+	const fixedLinks = require('../../models/linksFixed');
 
 	try {
 		// Define Variables
@@ -142,6 +143,11 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 				}
 				break;
 		}
+
+		// Update the database
+		await fixedLinks.findOneAndUpdate({}, { $inc: { linksFixed: 1 } }, { upsert: true });
+
+		// Catch any errors
 	} catch (error) {
 		throw new Error(error);
 	}

@@ -22,6 +22,7 @@ module.exports = { serviceData };
 
 // Discord Classes
 const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
+const cron = require('node-cron');
 
 // Define Client
 const client = new Client({
@@ -38,7 +39,13 @@ client.events = new Collection();
 client.color = '#f3d600';
 
 // Run Loaders
+client.mongoose = require('./core/loaders/mongoLoader');
 require('./core/loaders/commandLoader')(client);
 require('./core/loaders/eventLoader')(client);
+
+// Every 5 Minutes
+cron.schedule('*/5 * * * *', () => {
+	client.emit('everyFiveMinutes');
+});
 
 client.login(process.env.DISCORD_TOKEN);
