@@ -1,3 +1,4 @@
+const { ActivityType } = require('discord.js');
 const fixedLinks = require('../../models/linksFixed');
 
 module.exports = {
