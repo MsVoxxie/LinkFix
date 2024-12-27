@@ -103,7 +103,7 @@ module.exports = {
 				case 'Twitter':
 					const twitterUserId = match[1];
 					const twitterLinkId = match[2];
-					finalLink = `https://fixupx.com/${twitterUserId}/status/${twitterLinkId}/en`;
+					finalLink = `https://fixupx.com/${twitterUserId}/status/${twitterLinkId}`;
 					msgData.messages.push(hyperlink(`Tweet • ${twitterUserId} - ${twitterLinkId}`, finalLink));
 					break;
 

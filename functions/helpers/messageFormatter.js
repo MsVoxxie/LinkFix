@@ -58,7 +58,7 @@ async function messageFormatter(url) {
 					break;
 
 				case 'Twitter':
-					finalLink = `https://fixupx.com/${match[1]}/status/${match[2]}/en`;
+					finalLink = `https://fixupx.com/${match[1]}/status/${match[2]}`;
 					break;
 
 				default:
