@@ -57,7 +57,7 @@ module.exports = {
 				case 'Bsky':
 					const bskyUserId = match[1];
 					const bskyLinkId = match[2];
-					finalLink = `https://cbsky.app/profile/${bskyUserId}/post/${bskyLinkId}`;
+					finalLink = `https://bskye.app/profile/${bskyUserId}/post/${bskyLinkId}`;
 					msgData.messages.push(hyperlink(`Post • ${bskyUserId} - ${bskyLinkId}`, finalLink));
 					break;
 

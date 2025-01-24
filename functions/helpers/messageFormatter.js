@@ -30,7 +30,7 @@ async function messageFormatter(url) {
 
 			switch (platform) {
 				case 'Bsky':
-					finalLink = `https://cbsky.app/profile/${match[1]}/post/${match[2]}`;
+					finalLink = `https://bskye.app/profile/${match[1]}/post/${match[2]}`;
 					break;
 
 				case 'FurAffinity':
