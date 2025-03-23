@@ -1,7 +1,8 @@
 async function linkFix(message, originalMessage, messagesToSend, emoji) {
 	const { embedHasContent, botHasPermissions } = require('../../functions/helpers/messageFuncs');
-	const { PermissionFlagsBits, EmbedBuilder } = require('discord.js');
+	const { reqPerm } = require('../../functions/helpers/reqPerms');
 	const fixedLinks = require('../../models/linksFixed');
+	const { EmbedBuilder } = require('discord.js');
 
 	try {
 		// Define Variables
@@ -21,12 +22,7 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 		const embedContent = message.embeds.some(embedHasContent);
 
 		// Check if the bot has permissions
-		const permCheck = botHasPermissions(message, [
-			PermissionFlagsBits.AddReactions,
-			PermissionFlagsBits.ManageMessages,
-			PermissionFlagsBits.SendMessages,
-			PermissionFlagsBits.ViewChannel,
-		]);
+		const permCheck = botHasPermissions(message, reqPerm);
 		if (permCheck.failedPermissions.length) {
 			// Try to add an error reaction
 			try {
@@ -114,7 +110,9 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 
 				// Remove the reaction after the time is up
 				collector.on('end', async () => {
-					if (message) await message?.reactions.cache.get(emojiId).remove();
+					try {
+						if (message) await message?.reactions.cache.get(emojiId)?.remove();
+					} catch (error) {}
 				});
 				break;
 

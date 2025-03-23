@@ -1,7 +1,8 @@
-const { Events, hyperlink } = require('discord.js');
+const { msgSpoiled, botHasPermissions } = require('../../functions/helpers/messageFuncs');
+const { reqPerm } = require('../../functions/helpers/reqPerms');
 const linkFixer = require('../../functions/helpers/linkFixer');
-const { msgSpoiled } = require('../../functions/helpers/messageFuncs');
 const { serviceData } = require('../../noNameLinks');
+const { Events, hyperlink } = require('discord.js');
 
 module.exports = {
 	name: Events.MessageCreate,
@@ -9,6 +10,40 @@ module.exports = {
 	async execute(client, message) {
 		// Check if the message is from a bot
 		if (message.author.bot) return;
+
+		// Check if the bot has permissions
+		const permCheck = botHasPermissions(message, reqPerm);
+
+		if (permCheck.failedPermissions.length) {
+			// Try to add an error reaction
+			try {
+				await message.react(errEmoji);
+			} catch (error) {
+				return;
+			}
+
+			// Build an embed to send the error message
+			const embed = new EmbedBuilder()
+				.setColor('#FF0000')
+				.setTitle('Missing Permissions')
+				.setThumbnail(message.guild.iconURL())
+				.setDescription(
+					`I am unable to fix ${message.member.displayName}'s message in ${message.guild.name}, ${message.channel.name} due to missing permissions.\n\nPlease inform the server owner or an admin to grant me the following permissions:`
+				)
+				.addFields({
+					name: 'Missing Permissions',
+					value: `\`${permCheck.failedPermissions.join(', ')}\``,
+				});
+
+			// Send the embed
+			if (!permCheck.failedPermissions.includes('SendMessages')) {
+				await message.reply({ embeds: [embed] });
+				return;
+			} else {
+				await message.author.send({ embeds: [embed] });
+				return;
+			}
+		}
 
 		// If the message contains <link> or ||link|| or ||link#||, return
 		if (msgSpoiled(message.content)) return;
