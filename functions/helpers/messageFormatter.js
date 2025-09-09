@@ -38,7 +38,7 @@ async function messageFormatter(url) {
 					break;
 
 				case 'Instagram':
-					finalLink = `https://instagramez.com/reel/${match[1]}`;
+					finalLink = `https://g.embedez.com/reel/${match[1]}`;
 					break;
 
 				case 'Pixiv':
