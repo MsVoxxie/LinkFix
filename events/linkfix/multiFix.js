@@ -104,7 +104,7 @@ module.exports = {
 
 				case 'Instagram':
 					const instaId = match[1];
-					finalLink = `https://g.embedez.com/reel/${instaId}`;
+					finalLink = `https://vxinstagram.com/reel/${instaId}`;
 					msgData.messages.push(hyperlink(`Instagram • ${instaId}`, finalLink));
 					break;
 
