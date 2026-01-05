@@ -9,8 +9,12 @@ const serviceData = [
 	{ platform: 'Instagram', emoji: '<:insta:1267698397167747173>', regex: /https:\/\/www\.instagram\.com\/(?:reel|p)\/([A-Za-z0-9_-]+)\/?(?:\?\S+)?/gm },
 	{ platform: 'Pixiv', emoji: '<:pixiv:1267698425424511026>', regex: /https:\/\/www\.pixiv\.net\/en\/artworks\/(\d+)/gm },
 	{ platform: 'Reddit', emoji: '<:reddit:1267698435461484640>', regex: /https:\/\/(?:www\.)?reddit\.com\/r\/([^\/]+)\/(comments|s)\/([^\/]+)\/?/gm },
-	{ platform: 'TikTok', emoji: '<:tiktok:1267698443560943647>', regex: /https:\/\/www\.tiktok\.com\/t\/(\w+)\//gm },
-	{ platform: 'Tumblr', emoji: '<:tmblr:1317267509249839114>', regex: /https:\/\/www\.tumblr\.com\/([\w-]+)\/(\d+)/gm },
+	{
+		platform: 'TikTok',
+		emoji: '<:tiktok:1267698443560943647>',
+		regex: /https?:\/\/(?:www\.|m\.|vm\.|vt\.)?tiktok\.com\/(?:@?[\w\.-]+\/video\/|t\/|v\/|.+?\/)?([A-Za-z0-9_-]+)(?=[\/\s\?]|$)/gm,
+	},
+	{ platform: 'Tumblr', emoji: '<:tmblr:1317267509249839114>', regex: /https?:\/\/(?:www\.)?tumblr\.com\/([\w-]+)\/(\d+)(?:\/[^\s]*)?/gm },
 	{
 		platform: 'Twitter',
 		emoji: '<:twx:1267698451051708467>',
