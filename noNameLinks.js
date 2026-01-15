@@ -4,11 +4,11 @@ dotenv.config();
 
 // Define Regex patterns for social media links
 const serviceData = [
-	{ platform: 'Bsky', emoji: '<:bsky:1297323816787120209>', regex: /https:\/\/bsky\.app\/profile\/([^\/]+)\/post\/([a-zA-Z0-9]{1,20})/gm },
-	{ platform: 'FurAffinity', emoji: '<:furaffinity:1267698389168947280>', regex: /https:\/\/www\.furaffinity\.net\/view\/(\d+)\//gm },
-	{ platform: 'Instagram', emoji: '<:insta:1267698397167747173>', regex: /https:\/\/www\.instagram\.com\/(?:reel|p)\/([A-Za-z0-9_-]+)\/?(?:\?\S+)?/gm },
-	{ platform: 'Pixiv', emoji: '<:pixiv:1267698425424511026>', regex: /https:\/\/www\.pixiv\.net\/en\/artworks\/(\d+)/gm },
-	{ platform: 'Reddit', emoji: '<:reddit:1267698435461484640>', regex: /https:\/\/(?:www\.)?reddit\.com\/r\/([^\/]+)\/(comments|s)\/([^\/]+)\/?/gm },
+	{ platform: 'Bsky', emoji: '<:bsky:1297323816787120209>', regex: /https?:\/\/(?:www\.)?bsky\.app\/(?:profile|@)\/([^\/]+)\/post\/([a-zA-Z0-9_-]{1,32})/gm },
+	{ platform: 'FurAffinity', emoji: '<:furaffinity:1267698389168947280>', regex: /https?:\/\/www\.furaffinity\.net\/view\/(\d+)\/?/gm },
+	{ platform: 'Instagram', emoji: '<:insta:1267698397167747173>', regex: /https?:\/\/(?:www\.)?instagram\.com\/(?:reel|p|tv|stories)\/([A-Za-z0-9_-]+)\/?(?:\?\S+)?/gm },
+	{ platform: 'Pixiv', emoji: '<:pixiv:1267698425424511026>', regex: /https?:\/\/www\.pixiv\.net\/(?:en\/)?artworks\/(\d+)/gm },
+	{ platform: 'Reddit', emoji: '<:reddit:1267698435461484640>', regex: /https?:\/\/(?:www\.)?reddit\.com\/r\/([^\/]+)\/(comments|s)\/([^\/]+)(?:\/[^\s]*)?/gm },
 	{
 		platform: 'TikTok',
 		emoji: '<:tiktok:1267698443560943647>',

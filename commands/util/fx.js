@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType, MessageFlags } = require('discord.js');
 const messageFormatter = require('../../functions/helpers/messageFormatter');
 
 module.exports = {
@@ -18,9 +18,9 @@ module.exports = {
 
 		// Check that the message can be formatted, format it if so.
 		const formattedMessage = await messageFormatter(urlToFix);
-		if (!formattedMessage) return interaction.reply({ content: 'The provided url is not supported.', ephemeral: true });
+		if (!formattedMessage) return interaction.reply({ content: 'The provided url is not supported.', flags: MessageFlags.Ephemeral });
 
 		// Send the formatted message
-		await interaction.reply({ content: formattedMessage, ephemeral: false });
+		await interaction.reply({ content: formattedMessage, flags: MessageFlags.Ephemeral });
 	},
 };
