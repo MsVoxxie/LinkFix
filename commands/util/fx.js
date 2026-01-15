@@ -21,6 +21,6 @@ module.exports = {
 		if (!formattedMessage) return interaction.reply({ content: 'The provided url is not supported.', flags: MessageFlags.Ephemeral });
 
 		// Send the formatted message
-		await interaction.reply({ content: formattedMessage, flags: MessageFlags.Ephemeral });
+		await interaction.reply({ content: formattedMessage });
 	},
 };
