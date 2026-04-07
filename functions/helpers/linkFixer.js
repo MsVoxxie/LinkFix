@@ -10,6 +10,22 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 		let messageToSend;
 		let firstMessage = true;
 		const sentMessages = [];
+		const recordSuccessfulFix = async () => {
+			await fixedLinks.findOneAndUpdate({}, { $inc: { linksFixed: 1 } }, { upsert: true });
+
+			// Percentage chance to inform users about opting out: 100 = 100%
+			const chanceToInform = 10;
+			const informProbability = Math.min(Math.max(chanceToInform, 0), 100) / 100;
+			if (Math.random() < informProbability) {
+				const deleteAt = Math.floor((Date.now() + 15000) / 1000);
+				const optOutMessage = `-# Did you know? You can opt out of automatic link fixing by using the \`/allow_auto_fix\` command!`;
+				const autoDeleteMessage = `-# This message will self-destruct <t:${deleteAt}:R>.`;
+
+				await message.channel.send({ content: `${optOutMessage}\n${autoDeleteMessage}` }).then((msg) => {
+					setTimeout(() => msg.delete().catch(console.error), 15000);
+				});
+			}
+		};
 
 		// Define Emojis
 		const memberEmoji = '<:members_alt:1267698407573819432>';
@@ -37,7 +53,7 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 				.setTitle('Missing Permissions')
 				.setThumbnail(message.guild.iconURL())
 				.setDescription(
-					`I am unable to fix ${message.member.displayName}'s message in ${message.guild.name}, ${message.channel.name} due to missing permissions.\n\nPlease inform the server owner or an admin to grant me the following permissions:`
+					`I am unable to fix ${message.member.displayName}'s message in ${message.guild.name}, ${message.channel.name} due to missing permissions.\n\nPlease inform the server owner or an admin to grant me the following permissions:`,
 				)
 				.addFields({
 					name: 'Missing Permissions',
@@ -106,6 +122,8 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 							await allowRemove(message.author, lastMessage, sentMessages);
 						}
 					}
+
+					await recordSuccessfulFix();
 				});
 
 				// Remove the reaction after the time is up
@@ -139,11 +157,10 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 						await allowRemove(message.author, lastMessage, sentMessages);
 					}
 				}
+
+				await recordSuccessfulFix();
 				break;
 		}
-
-		// Update the database
-		await fixedLinks.findOneAndUpdate({}, { $inc: { linksFixed: 1 } }, { upsert: true });
 
 		// Catch any errors
 	} catch (error) {
