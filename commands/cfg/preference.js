@@ -3,11 +3,18 @@ const UserChoice = require('../../models/userChoice');
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('allow_auto_fix')
+		.setName('preference')
 		.setDescription('Opt in or out of automatic link fixing.')
 		.setContexts([InteractionContextType.Guild, InteractionContextType.PrivateChannel])
 		.setIntegrationTypes([ApplicationIntegrationType.GuildInstall])
-		.addBooleanOption((option) => option.setName('user_choice').setDescription('Whether to opt in or out of automatic link fixing.').setRequired(true)),
+		.addStringOption((option) =>
+			option
+				.setName('choice')
+				.setDescription('Whether to opt in or out of automatic link fixing.')
+				.setRequired(true)
+				.addChoices({ name: 'Opt In', value: 'true' }, { name: 'Opt Out', value: 'false' }),
+		),
+
 	options: {
 		devOnly: false,
 		disabled: false,
@@ -15,7 +22,7 @@ module.exports = {
 	async execute(client, interaction) {
 		try {
 			// Get the opt_in boolean from the interaction
-			const userChoice = interaction.options.getBoolean('user_choice');
+			const userChoice = interaction.options.getString('choice') === 'true';
 
 			// Update the user's settings for automatic link fixing
 			await UserChoice.findOneAndUpdate({ userId: interaction.user.id }, { autoLinkFix: userChoice }, { upsert: true, new: true });

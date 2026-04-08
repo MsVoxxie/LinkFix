@@ -18,7 +18,7 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 			const informProbability = Math.min(Math.max(chanceToInform, 0), 100) / 100;
 			if (Math.random() < informProbability) {
 				const deleteAt = Math.floor((Date.now() + 15000) / 1000);
-				const optOutMessage = `-# Did you know? You can opt out of automatic link fixing by using the \`/allow_auto_fix\` command!`;
+				const optOutMessage = `-# Did you know? You can opt out of automatic link fixing by using the \`/preference\` command!`;
 				const autoDeleteMessage = `-# This message will self-destruct <t:${deleteAt}:R>.`;
 
 				await message.channel.send({ content: `${optOutMessage}\n${autoDeleteMessage}` }).then((msg) => {
