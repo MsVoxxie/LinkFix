@@ -30,7 +30,7 @@ async function messageFormatter(url) {
 
 			switch (platform) {
 				case 'Bsky':
-					finalLink = `https://bskye.app/profile/${match[1]}/post/${match[2]}`;
+					finalLink = `https://fxbsky.app/profile/${match[1]}/post/${match[2]}`;
 					break;
 
 				case 'FurAffinity':
@@ -58,7 +58,7 @@ async function messageFormatter(url) {
 					break;
 
 				case 'Twitter':
-					finalLink = `https://fxtwitter.com/${match[1]}/status/${match[2]}`;
+					finalLink = `https://fixupx.com/${match[1]}/status/${match[2]}/en`;
 					break;
 
 				default:

@@ -97,7 +97,7 @@ module.exports = {
 				case 'Bsky':
 					const bskyUserId = match[1];
 					const bskyLinkId = match[2];
-					finalLink = `https://bskye.app/profile/${bskyUserId}/post/${bskyLinkId}`;
+					finalLink = `https://fxbsky.app/profile/${bskyUserId}/post/${bskyLinkId}`;
 					msgData.messages.push(hyperlink(`Post • ${bskyUserId} - ${bskyLinkId}`, finalLink));
 					break;
 
@@ -143,7 +143,7 @@ module.exports = {
 				case 'Twitter':
 					const twitterUserId = match[1];
 					const twitterLinkId = match[2];
-					finalLink = `https://fxtwitter.com/${twitterUserId}/status/${twitterLinkId}`;
+					finalLink = `https://fixupx.com/${twitterUserId}/status/${twitterLinkId}/en`;
 					msgData.messages.push(hyperlink(`Tweet • ${twitterUserId} - ${twitterLinkId}`, finalLink));
 					break;
 
