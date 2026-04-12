@@ -12,7 +12,7 @@ module.exports = {
 
 		// Get the number of links fixed
 		const linksFixed = await fixedLinks.findOne();
-		const linksFixedCount = linksFixed?.linksFixed?.toLocaleString();
+		const linksFixedCount = linksFixed?.linksFixed?.toLocaleString() ?? '0';
 
 		// Set the bot's activity
 		await client.user.setActivity(`I've Fixed ${linksFixedCount} links.`, { type: ActivityType.Custom });
