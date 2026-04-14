@@ -1,5 +1,6 @@
 const { serviceData } = require('../../noNameLinks');
 const fixedLinks = require('../../models/linksFixed');
+const { getFixedLinkData } = require('./fixedLinkMapper');
 
 /**
  * Formats a given Discord message object by extracting, processing, and reformatting social media links.
@@ -18,7 +19,7 @@ async function messageFormatter(url) {
 				[...url.matchAll(regex)].map((match) => ({
 					platform,
 					data: match,
-				}))
+				})),
 			);
 		}
 
@@ -26,44 +27,13 @@ async function messageFormatter(url) {
 
 		// Define Array for formatted messages
 		for await (const { platform, data } of linkMatches) {
-			const match = data;
-
-			switch (platform) {
-				case 'Bsky':
-					finalLink = `https://fxbsky.app/profile/${match[1]}/post/${match[2]}`;
-					break;
-
-				case 'FurAffinity':
-					finalLink = `https://xfuraffinity.net/view/${match[1]}`;
-					break;
-
-				case 'Instagram':
-					finalLink = `https://vxinstagram.com/reel/${match[1]}`;
-					break;
-
-				case 'Pixiv':
-					finalLink = `https://phixiv.net/en/artworks/${match[1]}`;
-					break;
-
-				case 'Reddit':
-					finalLink = `https://rxddit.com/r/${match[1]}/${match[2]}/${match[3]}`;
-					break;
-
-				case 'TikTok':
-					finalLink = `https://tnktok.com/t/${match[1]}`;
-					break;
-
-				case 'Tumblr':
-					finalLink = `https://www.tpmblr.com/${match[1]}/${match[2]}`;
-					break;
-
-				case 'Twitter':
-					finalLink = `https://fixupx.com/${match[1]}/status/${match[2]}/en`;
-					break;
-
-				default:
-					console.error(`Unsupported platform: ${platform}`);
+			const linkData = getFixedLinkData(platform, data);
+			if (!linkData) {
+				console.error(`Unsupported platform: ${platform}`);
+				continue;
 			}
+
+			finalLink = linkData.url;
 		}
 
 		// Update the database

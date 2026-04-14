@@ -1,6 +1,7 @@
 const { msgSpoiled, botHasPermissions } = require('../../functions/helpers/messageFuncs');
 const { reqPerm } = require('../../functions/helpers/reqPerms');
 const linkFixer = require('../../functions/helpers/linkFixer');
+const { getFixedLinkData } = require('../../functions/helpers/fixedLinkMapper');
 const { serviceData } = require('../../noNameLinks');
 const UserChoice = require('../../models/userChoice');
 const { Events, hyperlink } = require('discord.js');
@@ -89,67 +90,15 @@ module.exports = {
 		const msgData = { emoji: '', messages: [] };
 
 		for await (const { platform, emoji, data } of linkMatches) {
-			const match = data;
 			msgData.emoji = emoji;
 
-			let finalLink = '';
-			switch (platform) {
-				case 'Bsky':
-					const bskyUserId = match[1];
-					const bskyLinkId = match[2];
-					finalLink = `https://fxbsky.app/profile/${bskyUserId}/post/${bskyLinkId}`;
-					msgData.messages.push(hyperlink(`Post • ${bskyUserId} - ${bskyLinkId}`, finalLink));
-					break;
-
-				case 'FurAffinity':
-					const faId = match[1];
-					finalLink = `https://xfuraffinity.net/view/${faId}`;
-					msgData.messages.push(hyperlink(`FurAffinity • ${faId}`, finalLink));
-					break;
-
-				case 'Instagram':
-					const instaId = match[1];
-					finalLink = `https://vxinstagram.com/reel/${instaId}`;
-					msgData.messages.push(hyperlink(`Instagram • ${instaId}`, finalLink));
-					break;
-
-				case 'Pixiv':
-					const pixivId = match[1];
-					finalLink = `https://phixiv.net/en/artworks/${pixivId}`;
-					msgData.messages.push(hyperlink(`Pixiv • ${pixivId}`, finalLink));
-					break;
-
-				case 'Reddit':
-					const redditSub = match[1];
-					const redditType = match[2];
-					const redditId = match[3];
-					finalLink = `https://rxddit.com/r/${redditSub}/${redditType}/${redditId}`;
-					msgData.messages.push(hyperlink(`Reddit • ${redditSub} - ${redditId}`, finalLink));
-					break;
-
-				case 'TikTok':
-					const tiktokId = match[1];
-					finalLink = `https://tnktok.com/t/${tiktokId}`;
-					msgData.messages.push(hyperlink(`TikTok • ${tiktokId}`, finalLink));
-					break;
-
-				case 'Tumblr':
-					const tumblrUserId = match[1];
-					const tumblrLinkId = match[2];
-					finalLink = `https://www.tpmblr.com/${tumblrUserId}/${tumblrLinkId}`;
-					msgData.messages.push(hyperlink(`Tumblr • ${tumblrUserId} - ${tumblrLinkId}`, finalLink));
-					break;
-
-				case 'Twitter':
-					const twitterUserId = match[1];
-					const twitterLinkId = match[2];
-					finalLink = `https://fixupx.com/${twitterUserId}/status/${twitterLinkId}/en`;
-					msgData.messages.push(hyperlink(`Tweet • ${twitterUserId} - ${twitterLinkId}`, finalLink));
-					break;
-
-				default:
-					console.error(`Unsupported platform: ${platform}`);
+			const linkData = getFixedLinkData(platform, data);
+			if (!linkData) {
+				console.error(`Unsupported platform: ${platform}`);
+				continue;
 			}
+
+			msgData.messages.push(hyperlink(linkData.label, linkData.url));
 		}
 
 		// Run the link fixer
