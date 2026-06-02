@@ -9,7 +9,25 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 		let lastMessage;
 		let messageToSend;
 		let firstMessage = true;
+		let shouldReactOnFailure = false;
 		const sentMessages = [];
+		const errorReactionLifetime = 15000;
+		const chanceToNotifyMissingPerms = 10;
+		const addTimedErrorReaction = async (emojiToUse) => {
+			try {
+				const reaction = await message.react(emojiToUse);
+				setTimeout(() => reaction.remove().catch(() => null), errorReactionLifetime);
+			} catch (error) {
+				null;
+			}
+		};
+		const safeSend = async (content) => {
+			try {
+				return await message.reply(content);
+			} catch (error) {
+				return await message.channel.send(content);
+			}
+		};
 		const recordSuccessfulFix = async () => {
 			await fixedLinks.findOneAndUpdate({}, { $inc: { linksFixed: 1 } }, { upsert: true });
 
@@ -40,33 +58,38 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 		// Check if the bot has permissions
 		const permCheck = botHasPermissions(message, reqPerm);
 		if (permCheck.failedPermissions.length) {
-			// Try to add an error reaction
-			try {
-				await message.react(errEmoji);
-			} catch (error) {
-				return;
-			}
+			const canOfferManualFix = embedContent && !permCheck.failedPermissions.includes('AddReactions');
 
-			// Build an embed to send the error message
-			const embed = new EmbedBuilder()
-				.setColor('#FF0000')
-				.setTitle('Missing Permissions')
-				.setThumbnail(message.guild.iconURL())
-				.setDescription(
-					`I am unable to fix ${message.member.displayName}'s message in ${message.guild.name}, ${message.channel.name} due to missing permissions.\n\nPlease inform the server owner or an admin to grant me the following permissions:`,
-				)
-				.addFields({
-					name: 'Missing Permissions',
-					value: `\`${permCheck.failedPermissions.join(', ')}\``,
-				});
+			// If embedded content can still use reactions, let users attempt manual fix
+			if (!canOfferManualFix) {
+			// For auto-fix flow, treat missing permissions as a failed fix attempt
+				if (!embedContent) await addTimedErrorReaction(errEmoji);
 
-			// Send the embed
-			if (!permCheck.failedPermissions.includes('SendMessages')) {
-				await message.reply({ embeds: [embed] });
-				return;
-			} else {
-				await message.author.send({ embeds: [embed] });
-				return;
+				// Only post the larger permissions notice occasionally to reduce noise
+				const notifyProbability = Math.min(Math.max(chanceToNotifyMissingPerms, 0), 100) / 100;
+				if (Math.random() >= notifyProbability) return;
+
+				// Build an embed to send the error message
+				const embed = new EmbedBuilder()
+					.setColor('#FF0000')
+					.setTitle('Missing Permissions')
+					.setThumbnail(message.guild.iconURL())
+					.setDescription(
+						`I am unable to fix ${message.member.displayName}'s message in ${message.guild.name}, ${message.channel.name} due to missing permissions.\n\nPlease inform the server owner or an admin to grant me the following permissions:`,
+					)
+					.addFields({
+						name: 'Missing Permissions',
+						value: `\`${permCheck.failedPermissions.join(', ')}\``,
+					});
+
+				// Send the embed
+				if (!permCheck.failedPermissions.includes('SendMessages')) {
+					await message.reply({ embeds: [embed] }).catch(() => null);
+					return;
+				} else {
+					await message.author.send({ embeds: [embed] }).catch(() => null);
+					return;
+				}
 			}
 		}
 
@@ -79,6 +102,9 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 				const filter = (reaction, user) => reaction.emoji.id === emojiId && user.id === message.author.id;
 				const collector = message.createReactionCollector({ filter, time: 90 * 1000 });
 				collector.on('collect', async () => {
+					// Manual fix was requested, so failure should react
+					shouldReactOnFailure = true;
+
 					// Stop the collector
 					collector.stop();
 
@@ -104,17 +130,25 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 						if (firstMessage) {
 							// If the message has a reference, reply to the reference
 							if (message.reference) {
-								const replyMessage = await message.channel.messages.fetch(message.reference.messageId);
-								lastMessage = await replyMessage.reply(manualFormat);
+								const replyMessage = await message.channel.messages.fetch(message.reference.messageId).catch(() => null);
+								if (replyMessage) {
+									lastMessage = await replyMessage.reply(manualFormat);
+								} else {
+									lastMessage = await safeSend(manualFormat);
+								}
 								sentMessages.push(lastMessage);
 							} else {
 								// If the message does not have a reference, send a new message
-								lastMessage = await message.channel.send(manualFormat);
+								lastMessage = await safeSend(manualFormat);
 								sentMessages.push(lastMessage);
 							}
 							firstMessage = false;
 						} else {
-							lastMessage = await lastMessage.reply(messageToSend);
+							try {
+								lastMessage = await lastMessage.reply(messageToSend);
+							} catch (error) {
+								lastMessage = await message.channel.send(messageToSend);
+							}
 							sentMessages.push(lastMessage);
 						}
 						// If the message is the last message, allow the user to remove the messages
@@ -137,6 +171,7 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 			case false:
 				// The message does not have an embed so send the messages automatically
 				// Send the messages
+				shouldReactOnFailure = true;
 				for await (const msg of messagesToSend) {
 					// Get the index of the message
 					const index = messagesToSend.indexOf(msg);
@@ -144,11 +179,15 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 					// Format the message to send
 					messageToSend = `${botEmoji} | ${msg}`;
 					if (firstMessage) {
-						lastMessage = await message.reply(`${messageToSend}`);
+						lastMessage = await safeSend(`${messageToSend}`);
 						sentMessages.push(lastMessage);
 						firstMessage = false;
 					} else {
-						lastMessage = await lastMessage.reply(`${messageToSend}`);
+						try {
+							lastMessage = await lastMessage.reply(`${messageToSend}`);
+						} catch (error) {
+							lastMessage = await message.channel.send(`${messageToSend}`);
+						}
 						sentMessages.push(lastMessage);
 					}
 
@@ -164,7 +203,15 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 
 		// Catch any errors
 	} catch (error) {
-		throw new Error(error);
+		if (shouldReactOnFailure) {
+			await message
+				.react('<:error:1318812498769481778>')
+				.then((reaction) => {
+					setTimeout(() => reaction.remove().catch(() => null), 15000);
+				})
+				.catch(() => null);
+		}
+		throw error;
 	}
 }
 
