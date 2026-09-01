@@ -1,27 +1,22 @@
-const { serviceData } = require('../../noNameLinks');
 const fixedLinks = require('../../models/linksFixed');
 const { getFixedLinkData } = require('./fixedLinkMapper');
+const { extractLinks } = require('./linkExtractor');
+const Logger = require('../logging/logger');
 
 /**
- * Formats a given Discord message object by extracting, processing, and reformatting social media links.
+ * Extracts supported social media links from a string and returns their fixed,
+ * embed-friendly equivalents (newline-joined). Increments the global links-fixed
+ * counter by the number of links rebuilt.
  *
- * @param {Object} message - The Discord message object.
- * @returns {Object|boolean} - Returns an object with formatted message data or false if no links are found.
+ * @param {string} url - Raw text that may contain one or more supported links.
+ * @returns {Promise<string|false>} Newline-joined fixed URLs, or false if nothing supported was found.
  */
 
 async function messageFormatter(url) {
 	try {
 		// Check if any of the patterns match the message content
-		let linkMatches = [];
+		const linkMatches = extractLinks(url);
 		const finalLinks = [];
-		for (const { platform, regex } of serviceData) {
-			linkMatches = linkMatches.concat(
-				[...url.matchAll(regex)].map((match) => ({
-					platform,
-					data: match,
-				})),
-			);
-		}
 
 		if (linkMatches.length === 0) return false; // If no matches, exit
 
@@ -29,7 +24,7 @@ async function messageFormatter(url) {
 		for await (const { platform, data } of linkMatches) {
 			const linkData = getFixedLinkData(platform, data);
 			if (!linkData) {
-				console.error(`Unsupported platform: ${platform}`);
+				Logger.warn(`Unsupported platform: ${platform}`);
 				continue;
 			}
 
@@ -40,11 +35,12 @@ async function messageFormatter(url) {
 		if (finalLinks.length === 0) return false;
 
 		// Update the database with the number of links we actually fixed
-		await fixedLinks.findOneAndUpdate({}, { $inc: { linksFixed: finalLinks.length } }, { upsert: true });
+		await fixedLinks.findOneAndUpdate(fixedLinks.SINGLETON_FILTER, { $inc: { linksFixed: finalLinks.length } }, { upsert: true });
 
 		return finalLinks.join('\n');
 	} catch (error) {
-		throw new Error(error);
+		// Preserve the original error (and its stack) for the caller
+		throw error;
 	}
 }
 
