@@ -1,77 +1,69 @@
-const platformMap = {
-	Bsky: (match) => {
-		const userId = match[1];
-		const linkId = match[2];
-		return {
-			url: `https://fxbsky.app/profile/${userId}/post/${linkId}`,
-			label: `Post • ${userId} - ${linkId}`,
-		};
+// Per-platform rebuild rules. Each entry turns a regex match array into a fixed,
+// embed-friendly URL and a human-readable label.
+//
+//   host  - replacement domain
+//   path  - () => path string, or null when the link cannot be rebuilt
+//   label - () => display label
+const platforms = {
+	Bsky: {
+		host: 'fxbsky.app',
+		path: (m) => `/profile/${m[1]}/post/${m[2]}`,
+		label: (m) => `Post • ${m[1]} - ${m[2]}`,
 	},
-	FurAffinity: (match) => {
-		const id = match[1];
-		return {
-			url: `https://xfuraffinity.net/view/${id}`,
-			label: `FurAffinity • ${id}`,
-		};
+	FurAffinity: {
+		host: 'xfuraffinity.net',
+		path: (m) => `/view/${m[1]}`,
+		label: (m) => `FurAffinity • ${m[1]}`,
 	},
-	Instagram: (match) => {
-		const type = match[1];
-		const id = match[2];
-
+	Instagram: {
+		host: 'vxinstagram.com',
 		// Stories are tied to a username we do not capture, so we cannot rebuild them
-		if (type === 'stories') return null;
-
-		return {
-			url: `https://vxinstagram.com/${type}/${id}`,
-			label: `Instagram • ${id}`,
-		};
+		path: (m) => (m[1] === 'stories' ? null : `/${m[1]}/${m[2]}`),
+		label: (m) => `Instagram • ${m[2]}`,
 	},
-	Pixiv: (match) => {
-		const id = match[1];
-		return {
-			url: `https://phixiv.net/en/artworks/${id}`,
-			label: `Pixiv • ${id}`,
-		};
+	Pixiv: {
+		host: 'phixiv.net',
+		path: (m) => `/en/artworks/${m[1]}`,
+		label: (m) => `Pixiv • ${m[1]}`,
 	},
-	Reddit: (match) => {
-		const subreddit = match[1];
-		const type = match[2];
-		const id = match[3];
-		return {
-			url: `https://rxddit.com/r/${subreddit}/${type}/${id}`,
-			label: `Reddit • ${subreddit} - ${id}`,
-		};
+	Reddit: {
+		host: 'rxddit.com',
+		path: (m) => `/r/${m[1]}/${m[2]}/${m[3]}`,
+		label: (m) => `Reddit • ${m[1]} - ${m[3]}`,
 	},
-	TikTok: (match) => {
-		const id = match[1];
-		return {
-			url: `https://tnktok.com/t/${id}`,
-			label: `TikTok • ${id}`,
-		};
+	TikTok: {
+		host: 'tnktok.com',
+		path: (m) => `/t/${m[1]}`,
+		label: (m) => `TikTok • ${m[1]}`,
 	},
-	Tumblr: (match) => {
-		const userId = match[1];
-		const linkId = match[2];
-		return {
-			url: `https://www.tpmblr.com/${userId}/${linkId}`,
-			label: `Tumblr • ${userId} - ${linkId}`,
-		};
+	Tumblr: {
+		host: 'www.tpmblr.com',
+		path: (m) => `/${m[1]}/${m[2]}`,
+		label: (m) => `Tumblr • ${m[1]} - ${m[2]}`,
 	},
-	Twitter: (match) => {
-		const userId = match[1];
-		const linkId = match[2];
-		return {
-			url: `https://fixupx.com/${userId}/status/${linkId}/en`,
-			label: `Tweet • ${userId} - ${linkId}`,
-		};
+	Twitter: {
+		host: 'fixupx.com',
+		path: (m) => `/${m[1]}/status/${m[2]}/en`,
+		label: (m) => `Tweet • ${m[1]} - ${m[2]}`,
 	},
 };
 
+/**
+ * @param {string} platform - key into the platform table
+ * @param {RegExpMatchArray} match
+ * @returns {{ url: string, label: string } | null} null if unsupported or unrebuildable
+ */
 function getFixedLinkData(platform, match) {
-	const mapper = platformMap[platform];
-	if (!mapper) return null;
+	const entry = platforms[platform];
+	if (!entry) return null;
 
-	return mapper(match);
+	const path = entry.path(match);
+	if (path === null) return null;
+
+	return {
+		url: `https://${entry.host}${path}`,
+		label: entry.label(match),
+	};
 }
 
 module.exports = { getFixedLinkData };

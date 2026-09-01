@@ -1,57 +1,53 @@
-async function linkFix(message, originalMessage, messagesToSend, emoji) {
-	const { embedHasContent, botHasPermissions } = require('../../functions/helpers/messageFuncs');
-	const { reqPerm } = require('../../functions/helpers/reqPerms');
-	const fixedLinks = require('../../models/linksFixed');
-	const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
+const { embedHasContent, botHasPermissions } = require('./messageFuncs');
+const { reqPerm } = require('./reqPerms');
+const fixedLinks = require('../../models/linksFixed');
+const Logger = require('../logging/logger');
+const {
+	ERROR_REACTION_LIFETIME_MS,
+	OPT_OUT_NOTICE_LIFETIME_MS,
+	MANUAL_FIX_COLLECTOR_MS,
+	REMOVE_COLLECTOR_MS,
+	CHANCE_TO_NOTIFY_MISSING_PERMS,
+	CHANCE_TO_INFORM_OPT_OUT,
+	EMOJI,
+} = require('../../config/constants');
 
+async function linkFix(message, originalMessage, messagesToSend, emoji) {
 	try {
 		// Nothing to send, bail out before doing any work
 		if (!messagesToSend.length) return;
 
 		// Define Variables
-		let lastMessage;
-		let messageToSend;
-		let firstMessage = true;
 		let shouldReactOnFailure = false;
-		const sentMessages = [];
-		const errorReactionLifetime = 15000;
-		const chanceToNotifyMissingPerms = 10;
 		const addTimedErrorReaction = async (emojiToUse) => {
 			try {
 				const reaction = await message.react(emojiToUse);
-				setTimeout(() => reaction.remove().catch(() => null), errorReactionLifetime);
+				setTimeout(() => reaction.remove().catch(() => null), ERROR_REACTION_LIFETIME_MS);
 			} catch (error) {
 				null;
 			}
 		};
-		const safeSend = async (content) => {
-			try {
-				return await message.reply(content);
-			} catch (error) {
-				return await message.channel.send(content);
-			}
-		};
 		const recordSuccessfulFix = async () => {
-			await fixedLinks.findOneAndUpdate({}, { $inc: { linksFixed: 1 } }, { upsert: true });
+			await fixedLinks.findOneAndUpdate(fixedLinks.SINGLETON_FILTER, { $inc: { linksFixed: 1 } }, { upsert: true });
 
 			// Percentage chance to inform users about opting out: 100 = 100%
-			const chanceToInform = 10;
-			const informProbability = Math.min(Math.max(chanceToInform, 0), 100) / 100;
+			const informProbability = Math.min(Math.max(CHANCE_TO_INFORM_OPT_OUT, 0), 100) / 100;
 			if (Math.random() < informProbability) {
-				const deleteAt = Math.floor((Date.now() + 15000) / 1000);
+				const deleteAt = Math.floor((Date.now() + OPT_OUT_NOTICE_LIFETIME_MS) / 1000);
 				const optOutMessage = `-# Did you know? You can opt out of automatic link fixing by using the \`/preference\` command!`;
 				const autoDeleteMessage = `-# This message will self-destruct <t:${deleteAt}:R>.`;
 
 				await message.channel.send({ content: `${optOutMessage}\n${autoDeleteMessage}` }).then((msg) => {
-					setTimeout(() => msg.delete().catch(console.error), 15000);
+					setTimeout(() => msg.delete().catch((error) => Logger.error(error)), OPT_OUT_NOTICE_LIFETIME_MS);
 				});
 			}
 		};
 
 		// Define Emojis
-		const memberEmoji = '<:members_alt:1267698407573819432>';
-		const botEmoji = '<:bot_alt:1267698378117218344>';
-		const errEmoji = '<:error:1318812498769481778>';
+		const memberEmoji = EMOJI.MEMBER;
+		const botEmoji = EMOJI.BOT;
+		const errEmoji = EMOJI.ERROR;
 		const fixEmoji = emoji;
 		const [emojiName, emojiId] = fixEmoji.match(/<:([^:]+):(\d+)>/).slice(1, 3);
 
@@ -69,7 +65,7 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 				if (!embedContent) await addTimedErrorReaction(errEmoji);
 
 				// Only post the larger permissions notice occasionally to reduce noise
-				const notifyProbability = Math.min(Math.max(chanceToNotifyMissingPerms, 0), 100) / 100;
+				const notifyProbability = Math.min(Math.max(CHANCE_TO_NOTIFY_MISSING_PERMS, 0), 100) / 100;
 				if (Math.random() >= notifyProbability) return;
 
 				// Build an embed to send the error message
@@ -96,122 +92,56 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 			}
 		}
 
-		switch (embedContent) {
-			case true: {
-				// Add the reaction
-				await message.react(fixEmoji);
+		if (embedContent) {
+			// The message already embeds, so add a reaction and let the author opt in to a fix
+			await message.react(fixEmoji);
 
-				// The message has an embed so give the user the ability to manually fix the link
-				const filter = (reaction, user) => reaction.emoji.id === emojiId && user.id === message.author.id;
-				const collector = message.createReactionCollector({ filter, time: 90 * 1000 });
-				collector.on('collect', async () => {
-					// Manual fix was requested, so failure should react
-					shouldReactOnFailure = true;
+			const filter = (reaction, user) => reaction.emoji.id === emojiId && user.id === message.author.id;
+			const collector = message.createReactionCollector({ filter, time: MANUAL_FIX_COLLECTOR_MS });
 
-					// Stop the collector
-					collector.stop();
-
-					// Remove the reaction and the message
-					try {
-						await message.reactions.cache.get(emojiId).remove();
-						if (message) await message?.delete();
-					} catch (error) {
-						null;
-					}
-
-					// Send the messages
-					for await (const msg of messagesToSend) {
-						// Get the index of the message
-						const index = messagesToSend.indexOf(msg);
-
-						// Format the message to send
-						messageToSend = `${memberEmoji} | ${msg}`;
-
-						// Format the message to send
-						const manualFormat = `From ${message.author}\n${originalMessage.length ? `${originalMessage}\n` : ''}${messageToSend}`;
-
-						if (firstMessage) {
-							// If the message has a reference, reply to the reference
-							if (message.reference) {
-								const replyMessage = await message.channel.messages.fetch(message.reference.messageId).catch(() => null);
-								if (replyMessage) {
-									lastMessage = await replyMessage.reply(manualFormat);
-								} else {
-									lastMessage = await safeSend(manualFormat);
-								}
-								sentMessages.push(lastMessage);
-							} else {
-								// If the message does not have a reference, send a new message
-								lastMessage = await safeSend(manualFormat);
-								sentMessages.push(lastMessage);
-							}
-							firstMessage = false;
-						} else {
-							try {
-								lastMessage = await lastMessage.reply(messageToSend);
-							} catch (error) {
-								lastMessage = await message.channel.send(messageToSend);
-							}
-							sentMessages.push(lastMessage);
-						}
-						// If the message is the last message, allow the user to remove the messages
-						if (index === messagesToSend.length - 1) {
-							await allowRemove(message.author, lastMessage, sentMessages);
-						}
-					}
-
-					await recordSuccessfulFix();
-				});
-
-				// Remove the reaction after the time is up
-				collector.on('end', async () => {
-					try {
-						if (message) await message?.reactions.cache.get(emojiId)?.remove();
-					} catch (error) {}
-				});
-				break;
-			}
-
-			case false:
-				// The message does not have an embed so send the messages automatically
-				// Send the messages
+			collector.on('collect', async () => {
+				// Manual fix was requested, so failure should react
 				shouldReactOnFailure = true;
-				for await (const msg of messagesToSend) {
-					// Get the index of the message
-					const index = messagesToSend.indexOf(msg);
 
-					// Format the message to send
-					messageToSend = `${botEmoji} | ${msg}`;
-					if (firstMessage) {
-						lastMessage = await safeSend(`${messageToSend}`);
-						sentMessages.push(lastMessage);
-						firstMessage = false;
-					} else {
-						try {
-							lastMessage = await lastMessage.reply(`${messageToSend}`);
-						} catch (error) {
-							lastMessage = await message.channel.send(`${messageToSend}`);
-						}
-						sentMessages.push(lastMessage);
-					}
+				// Stop the collector
+				collector.stop();
 
-					// If the message is the last message, allow the user to remove the messages
-					if (index === messagesToSend.length - 1) {
-						await allowRemove(message.author, lastMessage, sentMessages);
-					}
+				// Remove the reaction and the message
+				try {
+					await message.reactions.cache.get(emojiId).remove();
+					if (message) await message?.delete();
+				} catch (error) {
+					null;
 				}
 
+				// Prefix the first message with the author and whatever text they had around the link
+				const buildFirstContent = (line) => `From ${message.author}\n${originalMessage.length ? `${originalMessage}\n` : ''}${line}`;
+				await sendFixMessages(message, messagesToSend, { linePrefix: memberEmoji, buildFirstContent, replyToReference: true });
+
 				await recordSuccessfulFix();
-				break;
+			});
+
+			// Remove the reaction after the time is up
+			collector.on('end', async () => {
+				try {
+					if (message) await message?.reactions.cache.get(emojiId)?.remove();
+				} catch (error) {}
+			});
+		} else {
+			// The message does not have an embed so send the messages automatically
+			shouldReactOnFailure = true;
+			await sendFixMessages(message, messagesToSend, { linePrefix: botEmoji });
+
+			await recordSuccessfulFix();
 		}
 
 		// Catch any errors
 	} catch (error) {
 		if (shouldReactOnFailure) {
 			await message
-				.react('<:error:1318812498769481778>')
+				.react(EMOJI.ERROR)
 				.then((reaction) => {
-					setTimeout(() => reaction.remove().catch(() => null), 15000);
+					setTimeout(() => reaction.remove().catch(() => null), ERROR_REACTION_LIFETIME_MS);
 				})
 				.catch(() => null);
 		}
@@ -219,12 +149,66 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 	}
 }
 
+// Try to reply to the message, falling back to a plain channel send if the reply fails
+async function safeSend(message, content) {
+	try {
+		return await message.reply(content);
+	} catch (error) {
+		return await message.channel.send(content);
+	}
+}
+
+// Send the first line of a fix, optionally chaining it off the message the author replied to
+async function sendFirstMessage(message, content, replyToReference) {
+	if (replyToReference && message.reference) {
+		const replyMessage = await message.channel.messages.fetch(message.reference.messageId).catch(() => null);
+		if (replyMessage) return replyMessage.reply(content);
+	}
+	return safeSend(message, content);
+}
+
+// Send every fixed link as a chain of replies and let the author remove the batch once it is done
+async function sendFixMessages(message, messagesToSend, { linePrefix, buildFirstContent = null, replyToReference = false }) {
+	const sentMessages = [];
+	let lastMessage;
+	let firstMessage = true;
+
+	for await (const msg of messagesToSend) {
+		// Get the index of the message
+		const index = messagesToSend.indexOf(msg);
+
+		// Format the message to send
+		const messageToSend = `${linePrefix} | ${msg}`;
+
+		if (firstMessage) {
+			const firstContent = buildFirstContent ? buildFirstContent(messageToSend) : messageToSend;
+			lastMessage = await sendFirstMessage(message, firstContent, replyToReference);
+			sentMessages.push(lastMessage);
+			firstMessage = false;
+		} else {
+			try {
+				lastMessage = await lastMessage.reply(messageToSend);
+			} catch (error) {
+				lastMessage = await message.channel.send(messageToSend);
+			}
+			sentMessages.push(lastMessage);
+		}
+
+		// If the message is the last message, allow the user to remove the messages
+		if (index === messagesToSend.length - 1) {
+			await allowRemove(message.author, lastMessage, sentMessages);
+		}
+	}
+
+	return sentMessages;
+}
+
 async function allowRemove(author, message, sentMessages) {
 	// Add the reaction
 	await message.react('🚮');
 	// Add a collector to the last message in case the user wants to delete the messages
 	const filter = (reaction, user) => reaction.emoji.name === '🚮' && user.id === author.id;
-	const collector = message.createReactionCollector({ filter, time: 30 * 1000 });
+	const collector = message.createReactionCollector({ filter, time: REMOVE_COLLECTOR_MS });
 
 	// Listen for the reaction
 	collector.on('collect', async () => {
@@ -251,3 +235,5 @@ async function allowRemove(author, message, sentMessages) {
 }
 
 module.exports = linkFix;
+// Exposed for unit tests
+module.exports.sendFixMessages = sendFixMessages;

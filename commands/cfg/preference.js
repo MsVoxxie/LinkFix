@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, InteractionContextType, ApplicationIntegrationType, MessageFlags } = require('discord.js');
 const UserChoice = require('../../models/userChoice');
+const Logger = require('../../functions/logging/logger');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -31,7 +32,7 @@ module.exports = {
 			await interaction.reply({ content: `You have successfully ${userChoice ? 'opted in to' : 'opted out of'} automatic link fixing.`, flags: MessageFlags.Ephemeral });
 			return;
 		} catch (error) {
-			console.error('Error updating user choice:', error);
+			Logger.error(error);
 			await interaction.reply({ content: 'There was an error updating your automatic link fixing preference. Please try again later.', flags: MessageFlags.Ephemeral });
 		}
 	},

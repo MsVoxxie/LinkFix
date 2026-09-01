@@ -1,6 +1,12 @@
 const { Events, MessageFlags } = require('discord.js');
 const Logger = require('../../functions/logging/logger');
 
+// Exact-match list of developer user IDs, parsed once from a comma-separated env var
+const developerIds = (process.env.DEVELOPERS ?? '')
+	.split(',')
+	.map((id) => id.trim())
+	.filter(Boolean);
+
 module.exports = {
 	name: Events.InteractionCreate,
 	runType: 'infinity',
@@ -13,7 +19,7 @@ module.exports = {
 			try {
 				// Check if command is dev only
 				if (command.options?.devOnly) {
-					if (!process.env.DEVELOPERS?.includes(interaction.user.id)) {
+					if (!developerIds.includes(interaction.user.id)) {
 						return interaction.reply({ content: 'This command is for developers only.', flags: MessageFlags.Ephemeral });
 					}
 				}

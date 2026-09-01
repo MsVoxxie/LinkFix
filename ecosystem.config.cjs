@@ -10,6 +10,8 @@ module.exports = {
 			autorestart: true,
 			watch: false,
 			max_memory_restart: '300M',
+			merge_logs: true,
+			time: true,
 			env: {
 				NODE_ENV: 'production',
 			},

@@ -1,7 +1,10 @@
 const { msgSpoiled } = require('../../functions/helpers/messageFuncs');
 const linkFixer = require('../../functions/helpers/linkFixer');
 const { getFixedLinkData } = require('../../functions/helpers/fixedLinkMapper');
-const { serviceData } = require('../../noNameLinks');
+const { extractLinks } = require('../../functions/helpers/linkExtractor');
+const { serviceData } = require('../../config/services');
+const { EMBED_CACHE_WAIT_MS } = require('../../config/constants');
+const Logger = require('../../functions/logging/logger');
 const UserChoice = require('../../models/userChoice');
 const { Events, hyperlink } = require('discord.js');
 
@@ -20,22 +23,13 @@ module.exports = {
 		if (msgSpoiled(message.content)) return;
 
 		// Check if any of the patterns match the message content
-		let linkMatches = [];
-		for (const { platform, emoji, regex } of serviceData) {
-			linkMatches = linkMatches.concat(
-				[...message.content.matchAll(regex)].map((match) => ({
-					platform,
-					emoji,
-					data: match,
-				})),
-			);
-		}
+		const linkMatches = extractLinks(message.content);
 
 		// If no matches, exit
 		if (linkMatches.length === 0) return;
 
 		// "Wait" a few seconds to make sure the message embeds are cached
-		await new Promise((resolve) => setTimeout(resolve, 1500));
+		await new Promise((resolve) => setTimeout(resolve, EMBED_CACHE_WAIT_MS));
 
 		// Define the query string regex
 		const queryString = /(\bhttps?:\/\/[^\s?]+)\?[^\s]*/gm;
@@ -57,7 +51,7 @@ module.exports = {
 		for await (const { platform, data } of linkMatches) {
 			const linkData = getFixedLinkData(platform, data);
 			if (!linkData) {
-				console.error(`Unsupported platform: ${platform}`);
+				Logger.warn(`Unsupported platform: ${platform}`);
 				continue;
 			}
 
@@ -71,7 +65,7 @@ module.exports = {
 		try {
 			await linkFixer(message, originalMessage, msgData.messages, msgData.emoji);
 		} catch (error) {
-			console.error('An error occurred in the link fixer:', error);
+			Logger.error(error);
 		}
 	},
 };

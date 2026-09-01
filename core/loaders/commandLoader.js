@@ -1,6 +1,7 @@
 const ascii = require('ascii-table');
 const commandTable = new ascii().setTitle('Command Loader').setHeading('Category', 'Command', 'Load Status');
 const getAllFiles = require('../../functions/helpers/getAllFiles');
+const Logger = require('../../functions/logging/logger');
 const { join } = require('path');
 module.exports = (client) => {
 	// Read the commands directory
@@ -14,18 +15,14 @@ module.exports = (client) => {
 		// Loop over the command files to retrieve all commands
 		for (const commandFile of commandFiles) {
 			const loadedCommand = require(commandFile);
-			// Switch statement to determine how to load the command
-			switch ('data' in loadedCommand && 'execute' in loadedCommand) {
-				case true:
-					client.commands.set(loadedCommand.data.name, loadedCommand);
-					commandTable.addRow(commandFolderName, loadedCommand.data.name, '✔ » Loaded');
-					break;
-
-				case false:
-					commandTable.addRow(commandFolderName, `${loadedCommand?.data?.name ? loadedCommand.data.name : 'Unknown'}`, '✕ » Errored');
-					continue;
+			// A valid command exposes both a `data` builder and an `execute` handler
+			if ('data' in loadedCommand && 'execute' in loadedCommand) {
+				client.commands.set(loadedCommand.data.name, loadedCommand);
+				commandTable.addRow(commandFolderName, loadedCommand.data.name, '✔ » Loaded');
+			} else {
+				commandTable.addRow(commandFolderName, `${loadedCommand?.data?.name ? loadedCommand.data.name : 'Unknown'}`, '✕ » Errored');
 			}
 		}
 	}
-	console.log(commandTable.toString());
+	Logger.banner(commandTable.toString());
 };

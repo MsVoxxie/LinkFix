@@ -1,6 +1,7 @@
 const ascii = require('ascii-table');
 const eventTable = new ascii().setTitle('Event Loader').setHeading('Source', 'Event', 'Load Status', 'Run Type');
 const getAllFiles = require('../../functions/helpers/getAllFiles');
+const Logger = require('../../functions/logging/logger');
 const { join } = require('path');
 
 module.exports = (client) => {
@@ -42,5 +43,5 @@ module.exports = (client) => {
 			}
 		}
 	}
-	console.log(eventTable.toString());
+	Logger.banner(eventTable.toString());
 };

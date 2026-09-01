@@ -1,29 +1,27 @@
-// Console colors
-const colors = require('colors');
+const pino = require('pino');
 
-// [INFO] console out
-const info = function (message) {
-	console.log(colors.cyan('[INFO]'), message);
-};
+const isProduction = process.env.NODE_ENV === 'production';
 
-// [WARN] console out
-const warn = function (message) {
-	console.log(colors.yellow('[WARN]'), message);
-};
-// [ERROR] console out
-const error = function (message) {
-	console.log(colors.red('[ERROR]'), message);
-};
+// Pretty, human-readable lines in development; structured JSON in production.
+const log = pino(
+	isProduction
+		? { level: process.env.LOG_LEVEL || 'info' }
+		: {
+				level: process.env.LOG_LEVEL || 'debug',
+				transport: {
+					target: 'pino-pretty',
+					options: { translateTime: 'SYS:standard', ignore: 'pid,hostname' },
+				},
+			},
+);
 
-// [SUCCESS] console out
-const success = function (message) {
-	console.log(colors.green('[SUCCESS]'), message);
-};
-
-// Module exports
+// Keep the original Logger surface so existing call sites are unchanged.
+// - success: an info-level line tagged for the "things went right" case
+// - banner:  printed straight to stdout, for ascii art like the loader tables
 module.exports = {
-	info: info,
-	warn: warn,
-	error: error,
-	success: success,
+	info: (message) => log.info(message),
+	warn: (message) => log.warn(message),
+	error: (message) => log.error(message),
+	success: (message) => log.info({ success: true }, message),
+	banner: (message) => console.log(message),
 };
