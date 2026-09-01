@@ -40,8 +40,8 @@ module.exports = {
 		// Define the query string regex
 		const queryString = /(\bhttps?:\/\/[^\s?]+)\?[^\s]*/gm;
 
-		// Remove any query strings first
-		let originalMessage = message.content.replace(queryString, '');
+		// Remove any query strings first, keeping the base url intact
+		let originalMessage = message.content.replace(queryString, '$1');
 
 		// Remove URLs using the regexes defined for each platform
 		serviceData.forEach(({ regex }) => {
@@ -51,12 +51,10 @@ module.exports = {
 		// Trim the message to remove any leading or trailing whitespace
 		originalMessage = originalMessage.trim();
 
-		// Define Array for formatted messages
-		const msgData = { emoji: '', messages: [] };
+		// Define object for formatted messages, react with the first matched platform's emoji
+		const msgData = { emoji: linkMatches[0].emoji, messages: [] };
 
-		for await (const { platform, emoji, data } of linkMatches) {
-			msgData.emoji = emoji;
-
+		for await (const { platform, data } of linkMatches) {
 			const linkData = getFixedLinkData(platform, data);
 			if (!linkData) {
 				console.error(`Unsupported platform: ${platform}`);
@@ -65,6 +63,9 @@ module.exports = {
 
 			msgData.messages.push(hyperlink(linkData.label, linkData.url));
 		}
+
+		// If nothing could be formatted, exit without touching the counter
+		if (msgData.messages.length === 0) return;
 
 		// Run the link fixer
 		try {

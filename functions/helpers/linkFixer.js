@@ -5,6 +5,9 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 	const { EmbedBuilder } = require('discord.js');
 
 	try {
+		// Nothing to send, bail out before doing any work
+		if (!messagesToSend.length) return;
+
 		// Define Variables
 		let lastMessage;
 		let messageToSend;
@@ -94,7 +97,7 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 		}
 
 		switch (embedContent) {
-			case true:
+			case true: {
 				// Add the reaction
 				await message.react(fixEmoji);
 
@@ -167,6 +170,7 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 					} catch (error) {}
 				});
 				break;
+			}
 
 			case false:
 				// The message does not have an embed so send the messages automatically

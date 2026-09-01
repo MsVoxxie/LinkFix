@@ -10,11 +10,10 @@ module.exports = (client) => {
 		const commandFolderName = commandFolder.replace(/\\/g, '/').split('/').pop();
 		// Get command files and sort them by load order
 		const commandFiles = getAllFiles(commandFolder);
-		commandFiles.sort((a, b) => a > b);
+		commandFiles.sort((a, b) => a.localeCompare(b));
 		// Loop over the command files to retrieve all commands
 		for (const commandFile of commandFiles) {
 			const loadedCommand = require(commandFile);
-			if (loadedCommand.data) client.commands.set(loadedCommand.data.name, loadedCommand);
 			// Switch statement to determine how to load the command
 			switch ('data' in loadedCommand && 'execute' in loadedCommand) {
 				case true:

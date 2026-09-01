@@ -15,9 +15,14 @@ const platformMap = {
 		};
 	},
 	Instagram: (match) => {
-		const id = match[1];
+		const type = match[1];
+		const id = match[2];
+
+		// Stories are tied to a username we do not capture, so we cannot rebuild them
+		if (type === 'stories') return null;
+
 		return {
-			url: `https://vxinstagram.com/reel/${id}`,
+			url: `https://vxinstagram.com/${type}/${id}`,
 			label: `Instagram • ${id}`,
 		};
 	},

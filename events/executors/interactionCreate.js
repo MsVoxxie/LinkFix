@@ -12,25 +12,29 @@ module.exports = {
 
 			try {
 				// Check if command is dev only
-				if (command.options.devOnly) {
-					if (!process.env.DEVELOPERS.includes(interaction.user.id)) {
+				if (command.options?.devOnly) {
+					if (!process.env.DEVELOPERS?.includes(interaction.user.id)) {
 						return interaction.reply({ content: 'This command is for developers only.', flags: MessageFlags.Ephemeral });
 					}
 				}
 
 				// Check if command is disabled
-				if (command.options.disabled) {
+				if (command.options?.disabled) {
 					return interaction.reply({ content: 'This command is disabled.', flags: MessageFlags.Ephemeral });
 				}
 
 				// Execute Command
-				if (interaction.guild) {
-					await command.execute(client, interaction);
-				} else {
-					await command.execute(client, interaction);
-				}
+				await command.execute(client, interaction);
 			} catch (error) {
 				Logger.error(error);
+
+				// Let the user know something went wrong instead of leaving the interaction hanging
+				const errorReply = { content: 'There was an error while running that command.', flags: MessageFlags.Ephemeral };
+				if (interaction.deferred || interaction.replied) {
+					await interaction.followUp(errorReply).catch(() => null);
+				} else {
+					await interaction.reply(errorReply).catch(() => null);
+				}
 			}
 		}
 	},

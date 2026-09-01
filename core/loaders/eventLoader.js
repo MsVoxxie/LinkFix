@@ -11,7 +11,7 @@ module.exports = (client) => {
 		const eventFolderName = eventFolder.replace(/\\/g, '/').split('/').pop();
 		// Get event files and sort them by load order
 		const eventFiles = getAllFiles(eventFolder);
-		eventFiles.sort((a, b) => a > b);
+		eventFiles.sort((a, b) => a.localeCompare(b));
 		// Loop over the event files to retrieve all events
 		for (const eventFile of eventFiles) {
 			// Get the file name without the path and extension

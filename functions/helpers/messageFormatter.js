@@ -13,7 +13,7 @@ async function messageFormatter(url) {
 	try {
 		// Check if any of the patterns match the message content
 		let linkMatches = [];
-		let finalLink = '';
+		const finalLinks = [];
 		for (const { platform, regex } of serviceData) {
 			linkMatches = linkMatches.concat(
 				[...url.matchAll(regex)].map((match) => ({
@@ -25,7 +25,7 @@ async function messageFormatter(url) {
 
 		if (linkMatches.length === 0) return false; // If no matches, exit
 
-		// Define Array for formatted messages
+		// Build the fixed link for every match we support
 		for await (const { platform, data } of linkMatches) {
 			const linkData = getFixedLinkData(platform, data);
 			if (!linkData) {
@@ -33,13 +33,16 @@ async function messageFormatter(url) {
 				continue;
 			}
 
-			finalLink = linkData.url;
+			finalLinks.push(linkData.url);
 		}
 
-		// Update the database
-		await fixedLinks.findOneAndUpdate({}, { $inc: { linksFixed: 1 } }, { upsert: true });
+		// If nothing could be formatted, exit without touching the counter
+		if (finalLinks.length === 0) return false;
 
-		return finalLink;
+		// Update the database with the number of links we actually fixed
+		await fixedLinks.findOneAndUpdate({}, { $inc: { linksFixed: finalLinks.length } }, { upsert: true });
+
+		return finalLinks.join('\n');
 	} catch (error) {
 		throw new Error(error);
 	}

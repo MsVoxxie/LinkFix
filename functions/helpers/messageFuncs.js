@@ -15,7 +15,8 @@ function embedHasContent(embed) {
 }
 
 function msgSpoiled(content) {
-	const linkPattern = /<[^>]*>|(\|\|.*?\|\|)/;
+	// Match suppressed link embeds <https://...> or spoilered text ||...||
+	const linkPattern = /<https?:\/\/[^>\s]+>|\|\|[\s\S]*?\|\|/;
 	return linkPattern.test(content);
 }
 

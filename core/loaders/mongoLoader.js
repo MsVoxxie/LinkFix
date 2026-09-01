@@ -8,17 +8,13 @@ module.exports = {
 			return mongoose.connect(mongoKey);
 		}
 
-		mongoConnect();
-
+		// Attach listeners before connecting so we do not miss the first events
 		mongoose.connection.on('connected', () => {
 			Logger.success('Connected to MongoDB');
 		});
 
 		mongoose.connection.on('disconnected', () => {
 			Logger.error('Disconnected from MongoDB');
-			setTimeout(() => {
-				mongoConnect();
-			}, 5000);
 		});
 
 		mongoose.connection.on('error', (err) => {
@@ -32,5 +28,8 @@ module.exports = {
 		mongoose.connection.on('reconnectFailed', () => {
 			Logger.error('Failed to reconnect to MongoDB');
 		});
+
+		// Let the driver handle reconnects from here on
+		mongoConnect().catch((err) => Logger.error(`MongoDB Error: ${err}`));
 	},
 };

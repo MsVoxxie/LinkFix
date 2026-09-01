@@ -12,7 +12,7 @@ module.exports = {
 		devOnly: false,
 		disabled: false,
 	},
-	async execute(client, interaction, settings) {
+	async execute(client, interaction) {
 		// Get the url from the interaction
 		const urlToFix = interaction.options.getString('url');
 
