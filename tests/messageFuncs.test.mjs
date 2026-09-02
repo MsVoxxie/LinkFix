@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { PermissionFlagsBits } from 'discord.js';
 import msgFuncsPkg from '../functions/helpers/messageFuncs.js';
 
-const { msgSpoiled, embedHasContent, botHasPermissions } = msgFuncsPkg;
+const { msgSpoiled, embedHasContent, embedIsAgeRestricted, botHasPermissions } = msgFuncsPkg;
 
 describe('msgSpoiled', () => {
 	it('true for suppressed link embed <https://...>', () => {
@@ -37,6 +37,34 @@ describe('embedHasContent', () => {
 	});
 	it('false for a 0x0 placeholder image', () => {
 		expect(embedHasContent({ image: { height: 0, width: 0 } })).toBe(false);
+	});
+});
+
+describe('embedIsAgeRestricted', () => {
+	const notice =
+		'Age-restricted adult content. This content might not be appropriate for people under 18 years old. To view this media, you’ll need to log in to X. Learn more';
+	it('true when the description is X\'s age-restricted notice', () => {
+		expect(embedIsAgeRestricted({ description: notice })).toBe(true);
+	});
+	it('true when the notice is in the title', () => {
+		expect(embedIsAgeRestricted({ title: notice })).toBe(true);
+	});
+	it('case-insensitive', () => {
+		expect(embedIsAgeRestricted({ description: 'AGE-RESTRICTED ADULT CONTENT' })).toBe(true);
+	});
+	it('true when Discord markdown-escapes the punctuation', () => {
+		expect(
+			embedIsAgeRestricted({
+				description:
+					'Age\\-restricted adult content\\. This content might not be appropriate for people under 18 years old\\. To view this media, you’ll need to log in to X\\. Learn more',
+			}),
+		).toBe(true);
+	});
+	it('false for a normal embed', () => {
+		expect(embedIsAgeRestricted({ description: 'just a normal post' })).toBe(false);
+	});
+	it('false for an empty embed', () => {
+		expect(embedIsAgeRestricted({})).toBe(false);
 	});
 });
 

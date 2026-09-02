@@ -1,4 +1,11 @@
 const { PermissionsBitField } = require('discord.js');
+const { AGE_RESTRICTED_EMBED_PATTERN } = require('../../config/constants');
+
+// True when an embed's text is just X's age-restricted placeholder.
+function embedIsAgeRestricted(embed) {
+	const text = `${embed?.title ?? ''} ${embed?.description ?? ''}`.replace(/\\(?=\W)/g, '');
+	return AGE_RESTRICTED_EMBED_PATTERN.test(text);
+}
 
 function embedHasContent(embed) {
 	// Check if theres any content in the embed
@@ -46,5 +53,6 @@ function botHasPermissions(message, permissions = []) {
 module.exports = {
 	botHasPermissions,
 	embedHasContent,
+	embedIsAgeRestricted,
 	msgSpoiled,
 };

@@ -18,6 +18,10 @@ module.exports = {
 	// How long to wait for Discord to cache link embeds before fixing (ms)
 	EMBED_CACHE_WAIT_MS: 1500,
 
+	// Placeholder text X shows instead of media on age-restricted posts.
+	// When an embed only contains this notice it has no real content, so we auto-fix it.
+	AGE_RESTRICTED_EMBED_PATTERN: /age-restricted adult content/i,
+
 	// How often to refresh the "links fixed" presence (ms)
 	STATUS_REFRESH_MS: 5 * 60 * 1000,
 

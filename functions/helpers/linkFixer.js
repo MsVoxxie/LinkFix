@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
-const { embedHasContent, botHasPermissions } = require('./messageFuncs');
+const { embedHasContent, embedIsAgeRestricted, botHasPermissions } = require('./messageFuncs');
 const { reqPerm } = require('./reqPerms');
 const fixedLinks = require('../../models/linksFixed');
 const Logger = require('../logging/logger');
@@ -19,7 +19,6 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 		if (!messagesToSend.length) return;
 
 		// Define Variables
-		let shouldReactOnFailure = false;
 		const addTimedErrorReaction = async (emojiToUse) => {
 			try {
 				const reaction = await message.react(emojiToUse);
@@ -51,8 +50,9 @@ async function linkFix(message, originalMessage, messagesToSend, emoji) {
 		const fixEmoji = emoji;
 		const [emojiName, emojiId] = fixEmoji.match(/<:([^:]+):(\d+)>/).slice(1, 3);
 
-		// Check if the message has an embed
-		const embedContent = message.embeds.some(embedHasContent);
+		// Check if the message has a real embed. X's age-restricted placeholder counts as no content,
+		// so those links get auto-fixed instead of waiting for a manual opt-in.
+		const embedContent = message.embeds.some((embed) => embedHasContent(embed) && !embedIsAgeRestricted(embed));
 
 		// Check if the bot has permissions
 		const permCheck = botHasPermissions(message, reqPerm);
