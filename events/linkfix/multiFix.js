@@ -1,4 +1,4 @@
-const { msgSpoiled } = require('../../functions/helpers/messageFuncs');
+const { msgSpoiled, waitForEmbed } = require('../../functions/helpers/messageFuncs');
 const linkFixer = require('../../functions/helpers/linkFixer');
 const { getFixedLinkData } = require('../../functions/helpers/fixedLinkMapper');
 const { extractLinks } = require('../../functions/helpers/linkExtractor');
@@ -28,8 +28,9 @@ module.exports = {
 		// If no matches, exit
 		if (linkMatches.length === 0) return;
 
-		// "Wait" a few seconds to make sure the message embeds are cached
-		await new Promise((resolve) => setTimeout(resolve, EMBED_CACHE_WAIT_MS));
+		// Wait for Discord to populate the embed, capped at EMBED_CACHE_WAIT_MS. Resolves as soon
+		// as a real embed shows up instead of always sleeping the full window.
+		message = await waitForEmbed(client, message, EMBED_CACHE_WAIT_MS);
 
 		// Define the query string regex
 		const queryString = /(\bhttps?:\/\/[^\s?]+)\?[^\s]*/gm;

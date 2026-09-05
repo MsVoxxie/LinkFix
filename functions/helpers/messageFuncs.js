@@ -21,6 +21,34 @@ function embedHasContent(embed) {
 	return false;
 }
 
+// Wait for Discord to populate a real embed on the message, or give up after maxWaitMs.
+// Resolves early once a non-placeholder embed shows up, instead of always sleeping the full window.
+function waitForEmbed(client, message, maxWaitMs) {
+	const hasRealEmbed = (msg) => msg.embeds.some((embed) => embedHasContent(embed) && !embedIsAgeRestricted(embed));
+
+	if (hasRealEmbed(message)) return Promise.resolve(message);
+
+	return new Promise((resolve) => {
+		const cleanup = () => client.off('messageUpdate', onUpdate);
+
+		const timer = setTimeout(() => {
+			cleanup();
+			resolve(message);
+		}, maxWaitMs);
+
+		const onUpdate = (oldMessage, newMessage) => {
+			if (newMessage.id !== message.id) return;
+			if (!hasRealEmbed(newMessage)) return;
+
+			clearTimeout(timer);
+			cleanup();
+			resolve(newMessage);
+		};
+
+		client.on('messageUpdate', onUpdate);
+	});
+}
+
 function msgSpoiled(content) {
 	// Match suppressed link embeds <https://...> or spoilered text ||...||
 	const linkPattern = /<https?:\/\/[^>\s]+>|\|\|[\s\S]*?\|\|/;
@@ -55,4 +83,5 @@ module.exports = {
 	embedHasContent,
 	embedIsAgeRestricted,
 	msgSpoiled,
+	waitForEmbed,
 };

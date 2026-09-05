@@ -16,7 +16,7 @@ module.exports = {
 	CHANCE_TO_INFORM_OPT_OUT: 10,
 
 	// How long to wait for Discord to cache link embeds before fixing (ms)
-	EMBED_CACHE_WAIT_MS: 1500,
+	EMBED_CACHE_WAIT_MS: 2000,
 
 	// Placeholder text X shows instead of media on age-restricted posts.
 	// When an embed only contains this notice it has no real content, so we auto-fix it.
