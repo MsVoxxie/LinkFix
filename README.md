@@ -2,7 +2,7 @@
 
 A Discord bot that rewrites social media links so they embed cleanly in chat.
 When someone posts a link from a supported platform, the bot replies with a
-fixed version (e.g. `x.com` → `fixupx.com`) that Discord can embed.
+fixed version (e.g. `x.com` → `fixvx.com`) that Discord can embed.
 
 Supported platforms: Bluesky, FurAffinity, Instagram, Pixiv, Reddit, TikTok,
 Tumblr, Twitter/X.

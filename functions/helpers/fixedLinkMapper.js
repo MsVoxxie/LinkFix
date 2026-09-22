@@ -42,7 +42,7 @@ const platforms = {
 		label: (m) => `Tumblr • ${m[1]} - ${m[2]}`,
 	},
 	Twitter: {
-		host: 'fixupx.com',
+		host: 'fixvx.com',
 		path: (m) => `/${m[1]}/status/${m[2]}/en`,
 		label: (m) => `Tweet • ${m[1]} - ${m[2]}`,
 	},

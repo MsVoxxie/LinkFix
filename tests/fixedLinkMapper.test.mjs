@@ -79,13 +79,13 @@ const cases = [
 	{
 		platform: 'Twitter',
 		input: 'https://twitter.com/jack/status/20',
-		url: 'https://fixupx.com/jack/status/20/en',
+		url: 'https://fixvx.com/jack/status/20/en',
 		label: 'Tweet • jack - 20',
 	},
 	{
 		platform: 'Twitter',
 		input: 'https://x.com/jack/status/20',
-		url: 'https://fixupx.com/jack/status/20/en',
+		url: 'https://fixvx.com/jack/status/20/en',
 		label: 'Tweet • jack - 20',
 	},
 ];
